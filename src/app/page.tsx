@@ -219,12 +219,16 @@ export default function Home() {
   }, [statusColor]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-950 relative overflow-hidden">
-      {/* Subtle Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 relative overflow-hidden">
+      {/* Enhanced Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 -left-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
+
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen">
@@ -233,36 +237,46 @@ export default function Home() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center py-12"
+          className="text-center py-8 md:py-12"
         >
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-6 px-4">
             <motion.img 
               src="/logo.webp" 
               alt="Forsyth County Schools Logo" 
-              className="w-20 h-20 rounded-2xl shadow-2xl border border-white/10"
-              whileHover={{ scale: 1.05 }}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-2xl shadow-2xl border border-white/10 bg-white/5"
+              whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ duration: 0.3 }}
             />
-            <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-400 drop-shadow-lg">
               School Status Checker
             </h1>
             <motion.img 
               src="/logo.webp" 
               alt="Forsyth County Schools Logo" 
-              className="w-20 h-20 rounded-2xl shadow-2xl border border-white/10"
-              whileHover={{ scale: 1.05 }}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-2xl shadow-2xl border border-white/10 bg-white/5 hidden md:block"
+              whileHover={{ scale: 1.05, rotate: -5 }}
               transition={{ duration: 0.3 }}
             />
           </div>
-          <p className="text-2xl text-gray-300 font-light tracking-wide">
+          <motion.p 
+            className="text-xl md:text-2xl text-gray-300 font-light tracking-wide mb-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             Forsyth County Schools
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <Clock className="w-5 h-5 text-blue-400" />
-            <p className="text-xl text-blue-300 font-medium">
+          </motion.p>
+          <motion.div 
+            className="flex items-center justify-center gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Clock className="w-5 h-5 text-cyan-400" />
+            <p className="text-lg md:text-xl text-cyan-300 font-medium">
               Tuesday, January 27th
             </p>
-          </div>
+          </motion.div>
         </motion.header>
 
         {/* Security Status Bar */}
@@ -270,37 +284,43 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="max-w-4xl mx-auto px-4 mb-8"
+          className="max-w-5xl mx-auto px-4 mb-6"
         >
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-8 py-4 flex items-center justify-between shadow-2xl">
+          <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl px-6 md:px-8 py-4 md:py-5 flex flex-col md:flex-row items-center justify-between shadow-2xl gap-4">
             <div className="flex items-center gap-3">
               <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                animate={{ 
+                  rotate: securityStatus === 'checking' ? 360 : 0,
+                  scale: securityStatus === 'verified' ? [1, 1.1, 1] : 1
+                }}
+                transition={{ 
+                  rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 2, repeat: Infinity }
+                }}
               >
                 <Shield className={`w-6 h-6 ${
-                  securityStatus === 'verified' && schoolStatus?.verified ? 'text-green-400' : 
-                  securityStatus === 'checking' ? 'text-yellow-400' : 'text-red-400'
+                  securityStatus === 'verified' && schoolStatus?.verified ? 'text-emerald-400' : 
+                  securityStatus === 'checking' ? 'text-amber-400' : 'text-red-400'
                 }`} />
               </motion.div>
-              <span className="text-white font-medium tracking-wide">
-                Security: {securityStatus === 'verified' && schoolStatus?.verified ? 'Verified' : securityStatus === 'checking' ? 'Checking' : 'Error'}
+              <span className="text-white font-semibold tracking-wide text-sm md:text-base">
+                Security: {securityStatus === 'verified' && schoolStatus?.verified ? '✓ Verified' : securityStatus === 'checking' ? 'Checking...' : '⚠ Error'}
               </span>
             </div>
             
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 md:gap-6">
               <div className="flex items-center gap-3">
                 {isOnline ? (
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <Wifi className="w-5 h-5 text-green-400" />
+                    <Wifi className="w-5 h-5 text-emerald-400" />
                   </motion.div>
                 ) : (
                   <WifiOff className="w-5 h-5 text-red-400" />
                 )}
-                <span className="text-white font-medium">
+                <span className="text-white font-medium text-sm md:text-base">
                   {isOnline ? 'Online' : 'Offline'}
                 </span>
               </div>
@@ -310,14 +330,14 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={requestNotificationPermission}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/10"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-sm"
               >
                 {notificationsEnabled ? (
-                  <Bell className="w-4 h-4 text-green-400" />
+                  <Bell className="w-4 h-4 text-emerald-400" />
                 ) : (
                   <BellOff className="w-4 h-4 text-gray-400" />
                 )}
-                <span className="text-white text-sm font-medium">
+                <span className="text-white text-xs md:text-sm font-medium">
                   {notificationsEnabled ? 'On' : 'Off'}
                 </span>
               </motion.button>
@@ -326,7 +346,7 @@ export default function Home() {
         </motion.div>
 
         {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-4 pb-8">
+        <main className="max-w-5xl mx-auto px-4 pb-8">
           {/* Loading State */}
           <AnimatePresence>
             {loading && (
@@ -334,20 +354,21 @@ export default function Home() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center justify-center py-20"
+                className="flex flex-col items-center justify-center py-16 md:py-20"
               >
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="mb-6"
                 >
-                  <Loader2 className="w-16 h-16 text-blue-400 mb-6" />
+                  <Loader2 className="w-16 h-16 md:w-20 md:h-20 text-cyan-400" />
                 </motion.div>
-                <p className="text-2xl text-white font-light tracking-wide">
+                <p className="text-xl md:text-2xl text-white font-light tracking-wide">
                   Checking school status...
                 </p>
                 {retryCount > 0 && (
                   <motion.p 
-                    className="text-sm text-yellow-400 mt-4 font-medium"
+                    className="text-sm text-amber-400 mt-4 font-medium"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -365,7 +386,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 50 }}
-                className="bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-2xl p-6 mb-8"
+                className="bg-red-500/10 backdrop-blur-md border border-red-500/30 rounded-3xl p-6 mb-8 shadow-xl"
               >
                 <div className="flex items-center gap-4">
                   <motion.div
@@ -387,40 +408,35 @@ export default function Home() {
           <AnimatePresence>
             {schoolStatus && !loading && (
               <motion.div 
-                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -30, scale: 0.9 }}
+                exit={{ opacity: 0, y: -30, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl"
-                whileHover={{ 
-                  boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)",
-                  borderColor: "rgba(59, 130, 246, 0.5)"
-                }}
+                className="bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl border border-white/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-6"
               >
                 {/* Status Header */}
-                <div className="flex items-center justify-center gap-6 mb-8">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-6 md:mb-8">
                   <motion.div
                     animate={{ 
-                      scale: [1, 1.2, 1],
-                      rotate: [0, 5, -5, 0],
-                      opacity: [1, 0.7, 1]
+                      scale: [1, 1.15, 1],
+                      rotate: [0, 5, -5, 0]
                     }}
                     transition={{ 
-                      duration: 3,
+                      duration: 4,
                       repeat: Infinity,
                       repeatType: "reverse"
                     }}
                   >
-                    <StatusIcon className={`w-12 h-12 ${
-                      statusColor === 'green' ? 'text-green-400' : 
-                      statusColor === 'red' ? 'text-red-400' : 
-                      statusColor === 'yellow' ? 'text-yellow-400' : 
-                      statusColor === 'blue' ? 'text-blue-400' : 
+                    <StatusIcon className={`w-14 h-14 md:w-16 md:h-16 ${
+                      statusColor === 'green' ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.5)]' : 
+                      statusColor === 'red' ? 'text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.5)]' : 
+                      statusColor === 'yellow' ? 'text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 
+                      statusColor === 'blue' ? 'text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.5)]' : 
                       'text-gray-400'
                     }`} />
                   </motion.div>
                   <motion.h2 
-                    className="text-4xl font-bold text-white text-center"
+                    className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
@@ -431,47 +447,47 @@ export default function Home() {
                 
                 {/* Message Box */}
                 <motion.div 
-                  className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/10"
+                  className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-6 mb-6 md:mb-8 border border-white/20 shadow-lg"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                   whileHover={{ 
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    scale: 1.02
+                    scale: 1.01,
+                    borderColor: "rgba(255, 255, 255, 0.3)"
                   }}
                 >
-                  <p className="text-xl text-white/90 leading-relaxed text-center">
+                  <p className="text-lg md:text-xl text-white/95 leading-relaxed text-center font-light">
                     {schoolStatus.message}
                   </p>
                 </motion.div>
                 
                 {/* Metadata Footer */}
                 <motion.div 
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm border-t border-white/10 pt-6"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm border-t border-white/20 pt-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
                 >
                   <motion.div 
-                    className="flex items-center justify-center gap-2 text-white/70"
-                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center justify-center gap-2 text-white/80 bg-white/5 rounded-xl p-3 border border-white/10"
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                   >
-                    <Clock className="w-5 h-5" />
-                    <span>Last updated: {schoolStatus.lastUpdated}</span>
+                    <Clock className="w-5 h-5 text-cyan-400" />
+                    <span className="font-medium">Last updated: {schoolStatus.lastUpdated}</span>
                   </motion.div>
                   <motion.div 
-                    className="flex items-center justify-center gap-2 text-white/70"
-                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center justify-center gap-2 text-white/80 bg-white/5 rounded-xl p-3 border border-white/10"
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                   >
-                    <Shield className="w-5 h-5" />
-                    <span>Source: {schoolStatus.source}</span>
+                    <Shield className="w-5 h-5 text-emerald-400" />
+                    <span className="font-medium">Source: {schoolStatus.source}</span>
                   </motion.div>
                   <motion.div 
-                    className="flex items-center justify-center gap-2 text-white/70"
-                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center justify-center gap-2 text-white/80 bg-white/5 rounded-xl p-3 border border-white/10"
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                   >
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Confidence: {Math.round((schoolStatus.confidence || 0.95) * 100)}%</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-400" />
+                    <span className="font-medium">Confidence: {Math.round((schoolStatus.confidence || 0.95) * 100)}%</span>
                   </motion.div>
                 </motion.div>
               </motion.div>
@@ -483,24 +499,24 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-center mt-8"
+            className="text-center mt-6"
           >
             <motion.button
               whileHover={{ 
                 scale: rateLimited ? 1 : 1.05,
-                boxShadow: rateLimited ? "none" : "0 20px 40px rgba(59, 130, 246, 0.3)"
+                boxShadow: rateLimited ? "none" : "0 20px 50px rgba(34, 211, 238, 0.4)"
               }}
-              whileTap={{ scale: rateLimited ? 1 : 0.95 }}
+              whileTap={{ scale: rateLimited ? 1 : 0.98 }}
               onClick={() => {
                 if (canMakeRequest()) {
                   checkSchoolStatus();
                 }
               }}
               disabled={loading || rateLimited}
-              className={`px-12 py-4 rounded-2xl font-bold text-lg shadow-2xl flex items-center gap-3 mx-auto transition-all tracking-wide ${
+              className={`px-10 md:px-14 py-4 md:py-5 rounded-2xl font-bold text-base md:text-lg shadow-2xl flex items-center gap-3 mx-auto transition-all tracking-wide ${
                 rateLimited 
-                  ? 'bg-gray-700 text-white cursor-not-allowed border border-gray-600' 
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border border-blue-500/20'
+                  ? 'bg-gray-700/50 text-white/60 cursor-not-allowed border border-gray-600/50 backdrop-blur-sm' 
+                  : 'bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 text-white hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 border border-cyan-500/30 backdrop-blur-sm'
               }`}
             >
               {loading ? (
@@ -511,17 +527,17 @@ export default function Home() {
                   >
                     <Loader2 className="w-6 h-6" />
                   </motion.div>
-                  Checking...
+                  <span>Checking...</span>
                 </>
               ) : rateLimited ? (
                 <>
                   <Clock className="w-6 h-6" />
-                  Rate Limited
+                  <span>Rate Limited</span>
                 </>
               ) : (
                 <>
                   <RefreshCw className="w-6 h-6" />
-                  Check Now
+                  <span>Check Now</span>
                 </>
               )}
             </motion.button>
@@ -531,15 +547,15 @@ export default function Home() {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-white/60 mt-6 text-sm flex items-center justify-center gap-2"
+                className="text-white/70 mt-6 text-sm md:text-base flex items-center justify-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-6 py-3 mx-auto w-fit border border-white/10"
               >
                 <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-4 h-4 text-cyan-400" />
                 </motion.div>
-                Next check in: {countdown} seconds
+                <span className="font-medium">Next check in: <span className="text-cyan-300 font-bold">{countdown} seconds</span></span>
               </motion.div>
             )}
           </motion.div>
