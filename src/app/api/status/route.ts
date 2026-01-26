@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
   
   try {
     // Check if geographic restriction is enabled
-    const geoRestrictionEnabled = process.env.ENABLE_GEOGRAPHIC_RESTRICTION !== 'false';
+    const geoRestrictionEnabled = process.env.ENABLE_GEOGRAPHIC_RESTRICTION === 'true';
     let location: { country: string; state: string } | null = null;
     
     // Geographic validation (only if enabled)
@@ -147,22 +147,28 @@ export async function GET(request: NextRequest) {
     const timeoutMs = parseInt(process.env.FCS_API_TIMEOUT || '15000');
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    const response = await fetch(process.env.FCS_API_URL!, {
-      method: 'GET',
-      headers: {
-        'User-Agent': process.env.FCS_API_USER_AGENT!,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Cache-Control': 'max-age=0',
-      },
-      signal: controller.signal,
-    });
+    let response: Response;
+    try {
+      response = await fetch(process.env.FCS_API_URL!, {
+        method: 'GET',
+        headers: {
+          'User-Agent': process.env.FCS_API_USER_AGENT!,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Cache-Control': 'max-age=0',
+        },
+        signal: controller.signal,
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'}`);
+    }
 
     clearTimeout(timeoutId);
 
