@@ -31,7 +31,7 @@ const ApiResponseSchema = z.object({
 
 // Rate limiting (in production, use Redis or a database)
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 100; // Increased for production
+const RATE_LIMIT_MAX_REQUESTS = 200; // Increased for production
 const RATE_LIMIT = new Map<string, { count: number; resetTime: number }>();
 
 // Geographic validation

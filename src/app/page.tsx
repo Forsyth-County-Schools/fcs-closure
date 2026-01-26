@@ -73,7 +73,7 @@ export default function Home() {
   // Rate limiting helper
   const canMakeRequest = useCallback(() => {
     const now = Date.now();
-    const minInterval = 2000; // 2 seconds between manual requests
+    const minInterval = 5000; // 5 seconds between manual requests
     
     if (now - lastRequestTime < minInterval) {
       setRateLimited(true);
@@ -93,20 +93,15 @@ export default function Home() {
       return;
     }
 
+    // Prevent multiple simultaneous requests
+    if (loading) {
+      return;
+    }
+
     try {
       setError(null);
       setSecurityStatus('checking');
       setLoading(true);
-      
-      // Trigger background animation
-      controls.start({
-        background: [
-          'linear-gradient(45deg, #1e293b 0%, #1e3a8a 25%, #1e293b 50%, #1e3a8a 75%, #1e293b 100%)',
-          'linear-gradient(45deg, #1e3a8a 0%, #1e293b 25%, #1e3a8a 50%, #1e293b 75%, #1e3a8a 100%)',
-          'linear-gradient(45deg, #1e293b 0%, #1e3a8a 25%, #1e293b 50%, #1e3a8a 75%, #1e293b 100%)'
-        ],
-        transition: { duration: 2, repeat: Infinity }
-      });
       
       // Call secure API endpoint
       const response = await fetch('/api/status', {
@@ -122,6 +117,10 @@ export default function Home() {
           // Geographic restriction - redirect to blocked page
           window.location.href = '/blocked';
           return;
+        }
+        if (response.status === 429) {
+          // Rate limited - don't retry immediately
+          throw new Error('Rate limit exceeded. Please wait before checking again.');
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -170,27 +169,27 @@ export default function Home() {
       setPreviousStatus(finalData.status);
       setSecurityStatus('verified');
       setRetryCount(0);
-      setCountdown(10); // Reset countdown
-      
-      // Stop background animation
-      controls.stop();
+      setCountdown(30); // Reset countdown to 30 seconds
       
     } catch (err) {
       setSecurityStatus('error');
       const errorMessage = err instanceof Error ? err.message : 'Service temporarily unavailable';
       
-      if (retryCount < SECURITY_CONFIG.maxRetries && !isRetry) {
+      // Don't retry rate limit errors
+      if (errorMessage.includes('Rate limit')) {
+        setError(errorMessage);
+      } else if (retryCount < SECURITY_CONFIG.maxRetries && !isRetry) {
         setRetryCount(prev => prev + 1);
-        setTimeout(() => checkSchoolStatus(true), 2000);
+        setTimeout(() => checkSchoolStatus(true), 3000);
         return;
+      } else {
+        setError(errorMessage);
       }
-      
-      setError(errorMessage);
     } finally {
       setLoading(false);
       setLastCheck(new Date());
     }
-  }, [isOnline, retryCount, previousStatus, sendNotification, controls]);
+  }, [isOnline, retryCount, previousStatus, sendNotification]);
 
   // Network status monitoring
   useEffect(() => {
@@ -208,20 +207,27 @@ export default function Home() {
     };
   }, []);
 
-  // Countdown timer
   useEffect(() => {
-    if (countdown > 0 && !loading) {
+    // Initial check
+    checkSchoolStatus();
+    
+    // Set up interval to check every 30 seconds instead of 10 seconds
+    const interval = setInterval(() => {
+      if (!loading && !rateLimited) {
+        checkSchoolStatus();
+      }
+    }, 30000); // 30 seconds instead of 10
+    
+    return () => clearInterval(interval);
+  }, [checkSchoolStatus, loading, rateLimited]);
+
+  // Countdown timer (but only for manual checks, not auto-refresh)
+  useEffect(() => {
+    if (countdown > 0 && !loading && !lastCheck) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && !loading) {
-      checkSchoolStatus();
     }
-  }, [countdown, loading, checkSchoolStatus]);
-
-  // Initial check
-  useEffect(() => {
-    checkSchoolStatus();
-  }, []);
+  }, [countdown, loading, lastCheck]);
 
   const statusColor = useMemo(() => {
     if (!schoolStatus) return 'gray';
@@ -242,112 +248,71 @@ export default function Home() {
   }, [statusColor]);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-      className="min-h-screen relative overflow-hidden"
-    >
-      {/* Animated Background */}
-      <motion.div
-        animate={controls}
-        className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900"
-      />
-      
-      {/* Floating Particles */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-950 relative overflow-hidden">
+      {/* Subtle Background Effects */}
       <div className="absolute inset-0">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-blue-400/20 rounded-full"
-            style={{
-              left: `${(i * 5.2) % 100}%`,
-              top: `${(i * 7.3) % 100}%`,
-            }}
-            animate={{
-              y: [0, -100, 0],
-              x: [0, 50, 0],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: 3 + (i % 4),
-              repeat: Infinity,
-              delay: i * 0.1,
-            }}
-          />
-        ))}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen backdrop-blur-sm bg-black/20">
+      <div className="relative z-10 min-h-screen">
         {/* Header */}
         <motion.header 
-          initial={{ opacity: 0, y: -50 }}
+          initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, type: "spring" }}
-          className="text-center py-8"
+          transition={{ duration: 0.6 }}
+          className="text-center py-12"
         >
-          <motion.div 
-            className="flex items-center justify-center gap-4 mb-6"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
+          <div className="flex items-center justify-center gap-6 mb-8">
             <motion.img 
               src="/logo.webp" 
               alt="Forsyth County Schools Logo" 
-              className="w-16 h-16 rounded-xl shadow-2xl"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.8 }}
+              className="w-20 h-20 rounded-2xl shadow-2xl border border-white/10"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
             />
-            <motion.h1 
-              className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300"
-              animate={{
-                textShadow: [
-                  "0 0 20px rgba(59, 130, 246, 0.5)",
-                  "0 0 40px rgba(59, 130, 246, 0.8)",
-                  "0 0 20px rgba(59, 130, 246, 0.5)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
               School Status Checker
-            </motion.h1>
+            </h1>
             <motion.img 
               src="/logo.webp" 
               alt="Forsyth County Schools Logo" 
-              className="w-16 h-16 rounded-xl shadow-2xl"
-              whileHover={{ rotate: -360 }}
-              transition={{ duration: 0.8 }}
+              className="w-20 h-20 rounded-2xl shadow-2xl border border-white/10"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
             />
-          </motion.div>
-          <motion.p 
-            className="text-xl text-blue-200"
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            Forsyth County Schools • Tuesday, January 27th
-          </motion.p>
+          </div>
+          <p className="text-2xl text-gray-300 font-light tracking-wide">
+            Forsyth County Schools
+          </p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <Clock className="w-5 h-5 text-blue-400" />
+            <p className="text-xl text-blue-300 font-medium">
+              Tuesday, January 27th
+            </p>
+          </div>
         </motion.header>
 
         {/* Security Status Bar */}
         <motion.div 
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
           className="max-w-4xl mx-auto px-4 mb-8"
         >
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 flex items-center justify-between">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-8 py-4 flex items-center justify-between shadow-2xl">
             <div className="flex items-center gap-3">
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
                 <Shield className={`w-6 h-6 ${
-                  securityStatus === 'verified' ? 'text-green-400' : 
+                  securityStatus === 'verified' && schoolStatus?.verified ? 'text-green-400' : 
                   securityStatus === 'checking' ? 'text-yellow-400' : 'text-red-400'
                 }`} />
               </motion.div>
-              <span className="text-white font-medium">
+              <span className="text-white font-medium tracking-wide">
                 Security: {securityStatus === 'verified' && schoolStatus?.verified ? 'Verified' : securityStatus === 'checking' ? 'Checking' : 'Error'}
               </span>
             </div>
@@ -357,7 +322,7 @@ export default function Home() {
                 {isOnline ? (
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   >
                     <Wifi className="w-5 h-5 text-green-400" />
                   </motion.div>
@@ -371,18 +336,18 @@ export default function Home() {
               
               {/* Notification Toggle */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={requestNotificationPermission}
-                className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/10"
               >
                 {notificationsEnabled ? (
                   <Bell className="w-4 h-4 text-green-400" />
                 ) : (
                   <BellOff className="w-4 h-4 text-gray-400" />
                 )}
-                <span className="text-white text-sm">
-                  {notificationsEnabled ? 'Notifications On' : 'Notifications Off'}
+                <span className="text-white text-sm font-medium">
+                  {notificationsEnabled ? 'On' : 'Off'}
                 </span>
               </motion.button>
             </div>
@@ -395,27 +360,23 @@ export default function Home() {
           <AnimatePresence>
             {loading && (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="flex flex-col items-center justify-center py-16"
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="flex flex-col items-center justify-center py-20"
               >
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
-                  <Loader2 className="w-20 h-20 text-blue-400 mb-6" />
+                  <Loader2 className="w-16 h-16 text-blue-400 mb-6" />
                 </motion.div>
-                <motion.p 
-                  className="text-2xl text-white font-semibold"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
+                <p className="text-2xl text-white font-light tracking-wide">
                   Checking school status...
-                </motion.p>
+                </p>
                 {retryCount > 0 && (
                   <motion.p 
-                    className="text-sm text-yellow-400 mt-4"
+                    className="text-sm text-yellow-400 mt-4 font-medium"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -556,7 +517,7 @@ export default function Home() {
             <motion.button
               whileHover={{ 
                 scale: rateLimited ? 1 : 1.05,
-                boxShadow: rateLimited ? "none" : "0 10px 30px rgba(59, 130, 246, 0.4)"
+                boxShadow: rateLimited ? "none" : "0 20px 40px rgba(59, 130, 246, 0.3)"
               }}
               whileTap={{ scale: rateLimited ? 1 : 0.95 }}
               onClick={() => {
@@ -565,10 +526,10 @@ export default function Home() {
                 }
               }}
               disabled={loading || rateLimited}
-              className={`px-10 py-4 rounded-2xl font-semibold text-lg shadow-xl flex items-center gap-3 mx-auto transition-all ${
+              className={`px-12 py-4 rounded-2xl font-bold text-lg shadow-2xl flex items-center gap-3 mx-auto transition-all tracking-wide ${
                 rateLimited 
-                  ? 'bg-gray-600 text-white cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600'
+                  ? 'bg-gray-700 text-white cursor-not-allowed border border-gray-600' 
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border border-blue-500/20'
               }`}
             >
               {loading ? (
@@ -603,7 +564,7 @@ export default function Home() {
               >
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
                   <Clock className="w-4 h-4" />
                 </motion.div>
@@ -613,6 +574,6 @@ export default function Home() {
           </motion.div>
         </main>
       </div>
-    </motion.div>
+    </div>
   );
 }
