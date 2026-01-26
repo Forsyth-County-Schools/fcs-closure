@@ -139,22 +139,8 @@ export default function Home() {
         return;
       }
       
-      // Mock response data with random variations for demo
-      const statuses = [
-        { status: 'School Status Update', message: 'Update available for Tuesday, January 27th - monitoring weather conditions', confidence: 0.92 },
-        { status: 'Decision Pending', message: 'Decision about Tuesday, January 27th will be made by 5:00 PM Monday', confidence: 0.88 },
-        { status: 'School Delayed', message: 'School will have a 2-hour delayed opening on Tuesday, January 27th', confidence: 0.95 },
-        { status: 'School Cancelled', message: 'Tuesday, January 27th will be cancelled due to inclement weather', confidence: 0.98 }
-      ];
-      
-      // Use real API data or fallback to mock data for demo
-      const mockData = statuses[Math.floor(Math.random() * statuses.length)];
-      const finalData = data.status ? data : {
-        ...mockData,
-        lastUpdated: new Date().toLocaleString(),
-        source: 'Forsyth County Schools API',
-        verified: true
-      };
+      // Use the real API data
+      const finalData = data;
       
       // Check if status changed and send notification
       if (previousStatus && previousStatus !== finalData.status) {
