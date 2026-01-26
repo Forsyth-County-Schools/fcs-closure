@@ -2,7 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "regions": ["atl1"],
   "functions": {
     "src/app/api/school-status/route.ts": {
       "maxDuration": 10
