@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 // Rate limiting (in production, use Redis or a database)
 const RATE_LIMIT = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute
+const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per minute (increased from 30)
 
 function getClientIdentifier(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // Rate limiting
+    // Rate limiting (relaxed for public access)
     const clientId = getClientIdentifier(request);
     if (!checkRateLimit(clientId)) {
       return NextResponse.json(
@@ -54,15 +54,6 @@ export async function GET(request: NextRequest) {
             'Retry-After': '60'
           }
         }
-      );
-    }
-
-    // Security validation
-    const userAgent = request.headers.get('user-agent');
-    if (!userAgent || userAgent.length < 10) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400, headers: SECURITY_HEADERS }
       );
     }
 

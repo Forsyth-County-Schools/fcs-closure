@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Security headers
 const SECURITY_HEADERS = {
@@ -16,18 +16,33 @@ let cachedResponse: any = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-async function fetchSchoolStatus() {
+// Simple HTML sanitization function
+function sanitizeHtml(text: string): string {
+  return text
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   const now = Date.now();
   
   // Return cached response if it's still fresh
   if (cachedResponse && (now - lastFetchTime) < CACHE_DURATION) {
-    return { ...cachedResponse, cached: true };
+    return NextResponse.json({ ...cachedResponse, cached: true }, {
+      headers: {
+        ...SECURITY_HEADERS,
+        'Cache-Control': 'public, max-age=300',
+      }
+    });
   }
 
   try {
     const response = await fetch(FCS_URL, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Cache-Control': 'no-cache',
@@ -117,19 +132,17 @@ async function fetchSchoolStatus() {
       confidence,
       source: 'Forsyth County Schools API',
       processingTime: `${processingTime}ms`,
-      verified: true, // Security verified badge
-      location: geoRestrictionEnabled ? location : null
+      verified: true,
     };
 
-    // Validate response with Zod
-    const validatedResult = ApiResponseSchema.parse(result);
+    // Cache the result
+    cachedResponse = result;
+    lastFetchTime = now;
     
-    return NextResponse.json(validatedResult, {
+    return NextResponse.json(result, {
       headers: {
         ...SECURITY_HEADERS,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+        'Cache-Control': 'public, max-age=300',
       }
     });
     
