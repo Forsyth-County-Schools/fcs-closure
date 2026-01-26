@@ -261,8 +261,8 @@ export default function Home() {
             key={i}
             className="absolute w-2 h-2 bg-blue-400/20 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${(i * 5.2) % 100}%`,
+              top: `${(i * 7.3) % 100}%`,
             }}
             animate={{
               y: [0, -100, 0],
@@ -270,9 +270,9 @@ export default function Home() {
               opacity: [0, 1, 0],
             }}
             transition={{
-              duration: 3 + Math.random() * 4,
+              duration: 3 + (i % 4),
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: i * 0.1,
             }}
           />
         ))}
@@ -596,7 +596,7 @@ export default function Home() {
             
             {/* Countdown */}
             {!loading && countdown > 0 && (
-              <motion.p 
+              <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-white/60 mt-6 text-sm flex items-center justify-center gap-2"
@@ -608,7 +608,7 @@ export default function Home() {
                   <Clock className="w-4 h-4" />
                 </motion.div>
                 Next check in: {countdown} seconds
-              </motion.p>
+              </motion.div>
             )}
           </motion.div>
         </main>

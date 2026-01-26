@@ -25,6 +25,8 @@ const ApiResponseSchema = z.object({
   confidence: z.number().min(0).max(1),
   source: z.string(),
   processingTime: z.string(),
+  verified: z.boolean(),
+  location: z.object({ country: z.string(), state: z.string() }).nullable().optional(),
 });
 
 // Rate limiting (in production, use Redis or a database)
@@ -247,7 +249,7 @@ export async function GET(request: NextRequest) {
       source: 'Forsyth County Schools API',
       processingTime: `${processingTime}ms`,
       verified: true, // Security verified badge
-      location: location
+      location: geoRestrictionEnabled ? location : null
     };
 
     // Validate response with Zod
