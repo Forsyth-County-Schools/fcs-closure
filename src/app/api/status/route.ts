@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextResponse } from 'next/server';
 
 // Security headers
 const SECURITY_HEADERS = {
@@ -10,169 +9,31 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
 };
 
-// Zod schema for API response validation
-const SchoolStatusSchema = z.object({
-  status: z.string().min(1, 'Status is required'),
-  message: z.string().min(1, 'Message is required'),
-  confidence: z.number().min(0).max(1).default(0.95),
-  source: z.string().optional(),
-});
+const FCS_URL = 'https://www.forsyth.k12.ga.us/fs/pages/0/page-pops';
 
-const ApiResponseSchema = z.object({
-  status: z.string(),
-  message: z.string(),
-  lastUpdated: z.string(),
-  confidence: z.number().min(0).max(1),
-  source: z.string(),
-  processingTime: z.string(),
-  verified: z.boolean(),
-  location: z.object({ country: z.string(), state: z.string() }).nullable().optional(),
-});
+// Cache the response for 5 minutes
+let cachedResponse: any = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-// Rate limiting (in production, use Redis or a database)
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 200; // Increased for production
-const RATE_LIMIT = new Map<string, { count: number; resetTime: number }>();
-
-// Geographic validation
-function getClientLocation(request: NextRequest): { country: string; state: string } | null {
-  const country = request.headers.get('x-vercel-ip-country') || 
-                  request.headers.get('cf-ipcountry') || 
-                  request.headers.get('x-country');
-  const state = request.headers.get('x-vercel-ip-country-region') || 
-                request.headers.get('cf-region') || 
-                request.headers.get('x-region');
-  
-  if (!country || !state) return null;
-  
-  return { country: country.toUpperCase(), state: state.toUpperCase() };
-}
-
-function isLocationAllowed(location: { country: string; state: string }): boolean {
-  const allowedCountries = (process.env.ALLOWED_COUNTRIES || 'US').split(',');
-  const allowedStates = (process.env.ALLOWED_STATES || 'GA').split(',');
-  
-  return allowedCountries.includes(location.country) && allowedStates.includes(location.state);
-}
-
-function getClientIdentifier(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const ip = forwarded?.split(',')[0] || realIp || 'unknown';
-  return ip;
-}
-
-function checkRateLimit(clientId: string): boolean {
+async function fetchSchoolStatus() {
   const now = Date.now();
-  const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW || '60000');
-  const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '30');
   
-  const clientData = RATE_LIMIT.get(clientId);
-  
-  if (!clientData || now > clientData.resetTime) {
-    RATE_LIMIT.set(clientId, { count: 1, resetTime: now + windowMs });
-    return true;
+  // Return cached response if it's still fresh
+  if (cachedResponse && (now - lastFetchTime) < CACHE_DURATION) {
+    return { ...cachedResponse, cached: true };
   }
-  
-  if (clientData.count >= maxRequests) {
-    return false;
-  }
-  
-  clientData.count++;
-  return true;
-}
 
-function sanitizeHtml(input: string): string {
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .trim();
-}
-
-export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  
   try {
-    // Check if geographic restriction is enabled
-    const geoRestrictionEnabled = process.env.ENABLE_GEOGRAPHIC_RESTRICTION === 'true';
-    let location: { country: string; state: string } | null = null;
-    
-    // Geographic validation (only if enabled)
-    if (geoRestrictionEnabled) {
-      location = getClientLocation(request);
-      if (!location) {
-        return NextResponse.json(
-          { error: 'Unable to determine location' },
-          { status: 403, headers: SECURITY_HEADERS }
-        );
-      }
-      
-      if (!isLocationAllowed(location)) {
-        return NextResponse.json(
-          { 
-            error: 'Access denied. This service is only available in Georgia, USA.',
-            location: location
-          },
-          { status: 403, headers: SECURITY_HEADERS }
-        );
-      }
-    }
-
-    // Rate limiting
-    const clientId = getClientIdentifier(request);
-    if (!checkRateLimit(clientId)) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { 
-          status: 429,
-          headers: {
-            ...SECURITY_HEADERS,
-            'Retry-After': '60'
-          }
-        }
-      );
-    }
-
-    // Security validation
-    const userAgent = request.headers.get('user-agent');
-    if (!userAgent || userAgent.length < 10) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400, headers: SECURITY_HEADERS }
-      );
-    }
-
-    // Fetch with security headers and timeout
-    const controller = new AbortController();
-    const timeoutMs = parseInt(process.env.FCS_API_TIMEOUT || '15000');
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-    let response: Response;
-    try {
-      response = await fetch(process.env.FCS_API_URL!, {
-        method: 'GET',
-        headers: {
-          'User-Agent': process.env.FCS_API_USER_AGENT!,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'none',
-          'Cache-Control': 'max-age=0',
-        },
-        signal: controller.signal,
-      });
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'}`);
-    }
-
-    clearTimeout(timeoutId);
+    const response = await fetch(FCS_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
+      },
+      next: { revalidate: 300 } // Revalidate every 5 minutes
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
