@@ -184,15 +184,13 @@ export default function Home() {
     // Initial check
     checkSchoolStatus();
     
-    // Set up interval to check every 30 seconds instead of 10 seconds
+    // Set up interval to check every 30 seconds
     const interval = setInterval(() => {
-      if (!loading && !rateLimited) {
-        checkSchoolStatus();
-      }
-    }, 30000); // 30 seconds instead of 10
+      checkSchoolStatus();
+    }, 30000); // 30 seconds
     
     return () => clearInterval(interval);
-  }, [checkSchoolStatus, loading, rateLimited]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Countdown timer (but only for manual checks, not auto-refresh)
   useEffect(() => {
