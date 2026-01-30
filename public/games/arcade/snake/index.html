@@ -230,19 +230,24 @@
             switch (e.key) {
                 case 'ArrowUp':
                     if (velocity.y === 0) velocity = { x: 0, y: -1 };
+                    e.preventDefault();
                     break;
                 case 'ArrowDown':
                     if (velocity.y === 0) velocity = { x: 0, y: 1 };
+                    e.preventDefault();
                     break;
                 case 'ArrowLeft':
                     if (velocity.x === 0) velocity = { x: -1, y: 0 };
+                    e.preventDefault();
                     break;
                 case 'ArrowRight':
                     if (velocity.x === 0) velocity = { x: 1, y: 0 };
+                    e.preventDefault();
                     break;
                 case ' ':
                     paused = !paused;
                     if (!paused) gameLoop();
+                    e.preventDefault();
                     break;
             }
         });

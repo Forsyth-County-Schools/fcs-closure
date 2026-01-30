@@ -79,6 +79,7 @@ export default function SearchPage() {
               placeholder="Search by game name, description, or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search games by name, description, or category"
               className="w-full pl-14 pr-4 py-5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white text-lg placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
             />
           </div>

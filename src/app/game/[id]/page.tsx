@@ -158,7 +158,7 @@ export default function GamePage() {
               className="w-full h-full"
               title={game.title}
               allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-forms"
+              sandbox="allow-scripts allow-forms"
             />
             
             {/* Placeholder message when game file doesn't exist */}

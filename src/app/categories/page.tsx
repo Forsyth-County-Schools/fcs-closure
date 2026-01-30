@@ -62,6 +62,8 @@ export default function CategoriesPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedCategory(category.id)}
+                aria-pressed={isActive}
+                aria-label={`Filter by ${category.name} - ${count} ${count === 1 ? 'game' : 'games'}`}
                 className={`p-6 rounded-2xl transition-all ${
                   isActive
                     ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30 border border-cyan-400/30'
