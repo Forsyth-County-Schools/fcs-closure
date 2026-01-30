@@ -1,97 +1,154 @@
-# School Status Checker
+# School Games Portal
 
-A Next.js application that automatically checks the school status for Forsyth County Schools, Georgia, specifically for Tuesday, January 27th. The app checks the school district's API endpoint every 2 minutes to detect any updates about school closures, delays, or cancellations.
+A modern Next.js application providing educational games for Forsyth County Schools students. Built with React, Next.js, and Tailwind CSS featuring a dark theme and responsive design.
 
 ## Features
 
-- **Automatic Monitoring**: Checks school status every 2 minutes
-- **Real-time Updates**: Displays current school status with last update time
-- **Manual Refresh**: Button to check status immediately
+- **Modern UI/UX**: Clean, minimal design with dark theme (#0f0f0f background)
+- **Game Categories**: Puzzle, Arcade, Strategy, and Educational games
+- **Advanced Search**: Search and filter games by name, category, and difficulty
 - **Responsive Design**: Works on desktop and mobile devices
-- **Dark Mode Support**: Automatically adapts to system theme
-- **Error Handling**: Shows clear error messages if the API is unavailable
-
-## How It Works
-
-The application fetches data from the Forsyth County Schools API endpoint:
-`https://www.forsyth.k12.ga.us/fs/pages/0/page-pops`
-
-It parses the response to detect keywords like:
-- "closed" - School is closed
-- "delayed" - School has a delayed opening  
-- "cancelled" - School is cancelled
-
-If none of these keywords are found, it assumes school is scheduled as normal.
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-### Deployment Steps:
-
-1. **Push to GitHub**: 
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin <your-github-repo-url>
-   git push -u origin main
-   ```
-
-2. **Deploy to Vercel**:
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your GitHub repository
-   - Click "Deploy"
-
-3. **Environment Variables** (if needed):
-   - The app uses a server-side API route to handle CORS, so no additional environment variables are required for basic functionality.
+- **Game Integration**: Existing games embedded via iframe
+- **Offline Support**: Works offline if games are available locally
+- **Smooth Animations**: Framer Motion powered transitions and effects
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/
-│   │   └── school-status/
-│   │       └── route.ts      # API route for fetching school status
-│   ├── page.tsx              # Main application page
-│   ├── layout.tsx            # Root layout
-│   └── globals.css           # Global styles
-├── components/               # Reusable components (if needed)
-└── lib/                      # Utility functions (if needed)
+│   ├── game/[id]/         # Individual game pages
+│   ├── categories/        # Browse by category
+│   ├── search/            # Advanced search page
+│   ├── page.tsx           # Homepage with game grid
+│   ├── layout.tsx         # Root layout with navbar/footer
+│   └── globals.css        # Global styles with dark theme
+├── components/            # Reusable components
+│   ├── GameCard.tsx       # Game card component
+│   ├── Navbar.tsx         # Navigation bar
+│   └── Footer.tsx         # Footer component
+└── lib/
+    └── games.ts           # Game configuration and data
+
+public/
+└── games/                 # Game files directory
+    ├── puzzle/            # Puzzle games
+    ├── arcade/            # Arcade games
+    ├── strategy/          # Strategy games
+    └── educational/       # Educational games
 ```
+
+## Getting Started
+
+### Development
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the application.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+## Adding Games
+
+To add a new game:
+
+1. **Create game directory**:
+   ```
+   public/games/{category}/{game-id}/
+   ```
+
+2. **Add game files**:
+   - Place all game files (HTML, JS, CSS, assets) in the directory
+   - Main file should be named `index.html`
+
+3. **Update game configuration**:
+   - Edit `src/lib/games.ts`
+   - Add game metadata (title, description, category, etc.)
+
+Example structure:
+```
+public/games/arcade/snake/
+├── index.html
+├── game.js
+├── style.css
+└── thumbnail.png
+```
+
+## Design Requirements
+
+- **Dark Background**: #0f0f0f / #111 style
+- **Subtle Hover Effects**: Smooth transitions on cards and buttons
+- **Modern Cards**: Rounded corners, clean spacing, gradient accents
+- **Responsive**: Desktop-first, mobile-friendly layout
+- **Accessibility**: Proper contrast ratios and semantic HTML
+
+## Technical Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: React 19
+- **Styling**: Tailwind CSS 4
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **TypeScript**: Full type safety
+
+## Game Integration
+
+Games are loaded via iframe with the following features:
+
+- Sandboxed environment for security
+- Fullscreen support
+- Game restart functionality
+- Maintains existing game logic and functionality
+- No modification to original game code
+
+## Browser Support
+
+Works on all modern browsers:
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## Deploy on Vercel
+
+1. Push to GitHub
+2. Import repository to Vercel
+3. Deploy with default settings
+4. Game files will be served from the public directory
 
 ## Customization
 
-To adapt this for a different school district or date:
+### Adding New Categories
 
-1. Update the API endpoint in `src/app/api/school-status/route.ts`
-2. Modify the parsing logic to match your district's response format
-3. Update the target date in `src/app/page.tsx`
+Edit `src/lib/games.ts` and add to the `categories` array:
 
-## Learn More
+```typescript
+{ id: 'new-category', name: 'New Category', icon: '🎯' }
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Changing Theme Colors
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Edit `src/app/globals.css` to adjust:
+- Background colors
+- Accent colors
+- Border colors
+- Text colors
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Modifying Layout
+
+- **Navbar**: `src/components/Navbar.tsx`
+- **Footer**: `src/components/Footer.tsx`
+- **Layout**: `src/app/layout.tsx`
+
+## License
+
+For educational use by Forsyth County Schools.
+
