@@ -22,8 +22,11 @@ interface SchoolStatus {
 // Fetch weather data
 async function fetchWeatherData(): Promise<WeatherData | null> {
   try {
-    const apiKey = 'b15c56de27784749aac160754263101';
-    const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=30041&aqi=no`, {
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://your-domain.com' 
+      : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/weather`, {
       next: { revalidate: 600 } // Cache for 10 minutes
     });
     

@@ -3,10 +3,9 @@
 export interface EnvConfig {
   // API Keys
   weatherApiKey: string;
+  resendApiKey: string;
   vonageApiKey?: string;
   vonageApiSecret?: string;
-  mailjetApiKey?: string;
-  mailjetApiSecret?: string;
   
   // Notification settings
   notificationEmail?: string;
@@ -25,6 +24,7 @@ export interface EnvConfig {
 // Required environment variables
 const REQUIRED_VARS: (keyof EnvConfig)[] = [
   'weatherApiKey',
+  'resendApiKey',
   'nodeEnv'
 ];
 
@@ -58,7 +58,7 @@ export function validateEnv(): EnvConfig {
   
   // Add other optional variables
   const optionalEnvVars: (keyof EnvConfig)[] = [
-    'vonageApiKey', 'vonageApiSecret', 'mailjetApiKey', 'mailjetApiSecret',
+    'vonageApiKey', 'vonageApiSecret',
     'notificationEmail', 'notificationPhone', 'fromNumber'
   ];
   
@@ -90,7 +90,7 @@ export function isFeatureEnabled(feature: 'sms' | 'email' | 'notifications'): bo
     case 'sms':
       return !!(config.vonageApiKey && config.vonageApiSecret && config.notificationPhone);
     case 'email':
-      return !!(config.mailjetApiKey && config.mailjetApiSecret && config.notificationEmail);
+      return !!(config.resendApiKey && config.notificationEmail);
     case 'notifications':
       return true; // Browser notifications are always available
     default:

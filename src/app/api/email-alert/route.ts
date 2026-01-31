@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendMailjetEmail } from '@/lib/mailjet-service';
+import { sendResendEmail } from '@/lib/resend-service';
 
 // Security headers
 const SECURITY_HEADERS = {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await sendMailjetEmail(message, weatherData);
+    const result = await sendResendEmail(message, weatherData);
     
     if (result) {
       return NextResponse.json(
