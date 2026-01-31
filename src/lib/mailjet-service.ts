@@ -1,7 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const mailjet = require('node-mailjet');
 
-let client: any = null;
+interface MailjetClient {
+  post: (method: string) => {
+    request: (data: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  };
+}
+
+let client: MailjetClient | null = null;
 
 // Initialize client only when credentials are available
 function initializeMailjetClient() {
@@ -20,7 +26,7 @@ const TO_EMAIL = process.env.NOTIFICATION_EMAIL!;
 // Store the last known message to avoid duplicate emails
 let lastKnownEmailMessage: string | null = null;
 
-export async function sendMailjetEmail(message: string, weatherData?: any) {
+export async function sendMailjetEmail(message: string, weatherData?: Record<string, unknown>) {
   try {
     // Initialize client if not already done
     if (!client) {
@@ -57,10 +63,10 @@ Status Message: ${message}
 Timestamp: ${new Date().toLocaleString()}
 
 Weather Information:
-- Temperature: ${weatherData ? `${weatherData.temp_f}°F` : 'N/A'}
-- Conditions: ${weatherData?.condition?.text || 'N/A'}
-- Wind Speed: ${weatherData ? `${weatherData.wind_mph} mph` : 'N/A'}
-- Humidity: ${weatherData ? `${weatherData.humidity}%` : 'N/A'}
+- Temperature: ${weatherData && typeof weatherData === 'object' && 'temp_f' in weatherData ? `${(weatherData as Record<string, unknown>).temp_f}°F` : 'N/A'}
+- Conditions: ${weatherData && typeof weatherData === 'object' && 'condition' in weatherData && weatherData.condition && typeof weatherData.condition === 'object' && 'text' in weatherData.condition ? String((weatherData.condition as Record<string, unknown>).text) : 'N/A'}
+- Wind Speed: ${weatherData && typeof weatherData === 'object' && 'wind_mph' in weatherData ? `${(weatherData as Record<string, unknown>).wind_mph} mph` : 'N/A'}
+- Humidity: ${weatherData && typeof weatherData === 'object' && 'humidity' in weatherData ? `${(weatherData as Record<string, unknown>).humidity}%` : 'N/A'}
 
 This is an automated alert from the FCS Status Monitoring System.
       `,
@@ -85,16 +91,16 @@ This is an automated alert from the FCS Status Monitoring System.
       <h3 style="margin: 0 0 15px 0; color: #374151;"> Weather Conditions</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div>
-          <strong>Temperature:</strong> ${weatherData ? `${weatherData.temp_f}°F` : 'N/A'}
+          <strong>Temperature:</strong> ${weatherData && typeof weatherData === 'object' && 'temp_f' in weatherData ? `${(weatherData as Record<string, unknown>).temp_f}°F` : 'N/A'}
         </div>
         <div>
-          <strong>Conditions:</strong> ${weatherData?.condition?.text || 'N/A'}
+          <strong>Conditions:</strong> ${weatherData && typeof weatherData === 'object' && 'condition' in weatherData && weatherData.condition && typeof weatherData.condition === 'object' && 'text' in weatherData.condition ? String((weatherData.condition as Record<string, unknown>).text) : 'N/A'}
         </div>
         <div>
-          <strong>Wind:</strong> ${weatherData ? `${weatherData.wind_mph} mph` : 'N/A'}
+          <strong>Wind:</strong> ${weatherData && typeof weatherData === 'object' && 'wind_mph' in weatherData ? `${(weatherData as Record<string, unknown>).wind_mph} mph` : 'N/A'}
         </div>
         <div>
-          <strong>Humidity:</strong> ${weatherData ? `${weatherData.humidity}%` : 'N/A'}
+          <strong>Humidity:</strong> ${weatherData && typeof weatherData === 'object' && 'humidity' in weatherData ? `${(weatherData as Record<string, unknown>).humidity}%` : 'N/A'}
         </div>
       </div>
     </div>
@@ -129,7 +135,7 @@ This is an automated alert from the FCS Status Monitoring System.
     console.log(`Subject: FCS Status Alert`);
     console.log(`Message: ${message}`);
     console.log(`Timestamp: ${new Date().toLocaleString()}`);
-    console.log(`Weather: ${weatherData ? `${weatherData.temp_f}°F, ${weatherData.condition?.text}` : 'N/A'}`);
+    console.log(`Weather: ${weatherData && typeof weatherData === 'object' && 'temp_f' in weatherData && 'condition' in weatherData && weatherData.condition && typeof weatherData.condition === 'object' && 'text' in weatherData.condition ? `${(weatherData as Record<string, unknown>).temp_f}°F, ${String((weatherData.condition as Record<string, unknown>).text)}` : 'N/A'}`);
     console.log('---');
     
     return false;

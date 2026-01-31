@@ -1,4 +1,5 @@
 // Test Mailjet email system
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Mailjet = require('node-mailjet');
 
 // You'll need to provide your Mailjet credentials

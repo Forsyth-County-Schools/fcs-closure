@@ -40,14 +40,6 @@ function formatDate(): string {
   return `${dayName}, ${monthName} ${day}${suffix}`;
 }
 
-// Helper function to get weather icon component name
-function getWeatherIconName(condition: string): typeof Sun {
-  const lowerCondition = condition.toLowerCase();
-  if (lowerCondition.includes('clear') || lowerCondition.includes('sunny')) return Sun;
-  if (lowerCondition.includes('rain') || lowerCondition.includes('shower') || lowerCondition.includes('drizzle')) return CloudRain;
-  if (lowerCondition.includes('cloud') || lowerCondition.includes('overcast') || lowerCondition.includes('mist') || lowerCondition.includes('fog')) return Cloud;
-  return Sun; // default
-}
 
 // Fetch weather data
 async function fetchWeatherData(): Promise<WeatherData | null> {
@@ -64,7 +56,7 @@ async function fetchWeatherData(): Promise<WeatherData | null> {
     const data = await response.json();
     return data.current || null;
   } catch (error) {
-    // Silently handle weather errors to prevent page crashes
+    console.error('Error fetching weather data:', error);
     return null;
   }
 }
@@ -76,14 +68,14 @@ async function fetchSchoolStatus(): Promise<SchoolStatus | null> {
       ? 'https://your-domain.com' 
       : 'http://localhost:3000';
     
-    const response = await fetch(`${baseUrl}/api/school-status`);
+    const response = await fetch(`${baseUrl}/api/status`);
     
     if (!response.ok) {
       throw new Error('School status API request failed');
     }
     
     return await response.json();
-  } catch (error) {
+  } catch {
     // Silently handle school status errors to prevent page crashes
     return null;
   }
@@ -114,7 +106,16 @@ export default async function Home() {
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="text-center py-8 md:py-12 px-4">
+        <header className="text-center py-12 px-4">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/logo.webp" 
+              alt="Forsyth County Schools Logo" 
+              className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40"
+            />
+          </div>
+          
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
             <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
               FORSYTH COUNTY

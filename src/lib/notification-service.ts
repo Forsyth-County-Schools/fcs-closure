@@ -102,14 +102,16 @@ export async function createNotification(
 // Send FCS status notification
 export async function sendFCSNotification(
   statusMessage: string, 
-  weatherData?: any
+  weatherData?: Record<string, unknown>
 ): Promise<boolean> {
   const title = '🚨 FCS Status Alert';
   let message = statusMessage;
 
   // Add weather info to notification if available
-  if (weatherData) {
-    message += `\n\n🌤️ Weather: ${weatherData.temp_f}°F, ${weatherData.condition?.text || 'Unknown'}`;
+  if (weatherData && typeof weatherData === 'object') {
+    const temp = 'temp_f' in weatherData ? String((weatherData as Record<string, unknown>).temp_f) : 'N/A';
+    const condition = weatherData && typeof weatherData === 'object' && 'condition' in weatherData && weatherData.condition && typeof weatherData.condition === 'object' && 'text' in weatherData.condition ? String((weatherData.condition as Record<string, unknown>).text) : 'Unknown';
+    message += `\n\n🌤️ Weather: ${temp}°F, ${condition}`;
   }
 
   return await createNotification(title, message, {

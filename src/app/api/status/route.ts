@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Security headers
 const SECURITY_HEADERS = {
@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 const FCS_URL = 'https://www.forsyth.k12.ga.us/fs/pages/0/page-pops';
 
 // Cache the response for 5 minutes
-let cachedResponse: any = null;
+let cachedResponse: Record<string, unknown> | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -25,7 +25,7 @@ function sanitizeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
   const now = Date.now();
   
@@ -67,56 +67,55 @@ export async function GET(request: NextRequest) {
     const hasSchoolKeyword = lowerData.includes('school');
     
     let status = 'School is scheduled as normal';
-    let message = 'No changes detected for Tuesday, January 27th';
+    let message = 'No changes detected for Monday, February 2nd, 2026';
     let confidence = 0.95;
     
     if (hasSchoolKeyword) {
-      // Extract the Tuesday-specific section
-      const tuesdaySection = data.match(/tuesday, january 27[^:]*:([^<]*)/i);
-      const tuesdayText = tuesdaySection ? tuesdaySection[1].toLowerCase() : '';
+      // Extract the Monday-specific section
+      const mondaySection = data.match(/monday, february 2[^:]*:([^<]*)/i);
+      const mondayText = mondaySection ? mondaySection[1].toLowerCase() : '';
       
-      // Check for cancellations specifically in Tuesday section
-      if (tuesdayText.includes('cancelled') || tuesdayText.includes('cancel') || tuesdayText.includes('closed')) {
+      // Check for cancellations specifically in Monday section
+      if (mondayText.includes('cancelled') || mondayText.includes('cancel') || mondayText.includes('closed')) {
         status = 'School Cancelled';
-        message = 'Tuesday, January 27th will be cancelled';
+        message = 'Monday, February 2nd, 2026 will be cancelled';
         confidence = 0.98;
       }
-      // Check for delays specifically in Tuesday section
-      else if (tuesdayText.includes('delayed') || tuesdayText.includes('delay')) {
+      // Check for delays specifically in Monday section
+      else if (mondayText.includes('delayed') || mondayText.includes('delay')) {
         status = 'School Delayed';
-        message = 'School will have a delayed opening on Tuesday, January 27th';
+        message = 'School will have a delayed opening on Monday, February 2nd, 2026';
         confidence = 0.96;
       }
-      // Check for early dismissal specifically in Tuesday section
-      else if (tuesdayText.includes('early dismissal') || tuesdayText.includes('dismissed early')) {
+      // Check for early dismissal specifically in Monday section
+      else if (mondayText.includes('early dismissal') || mondayText.includes('dismissed early')) {
         status = 'Early Dismissal';
-        message = 'School will have early dismissal on Tuesday, January 27th';
+        message = 'School will have early dismissal on Monday, February 2nd, 2026';
         confidence = 0.96;
       }
-      // Look for decision-making language about Tuesday
-      else if (tuesdayText.includes('decision') || tuesdayText.includes('share a decision') || tuesdayText.includes('will share')) {
+      // Look for decision-making language about Monday
+      else if (mondayText.includes('decision') || mondayText.includes('share a decision') || mondayText.includes('will share')) {
         status = 'Decision Pending';
-        message = 'Decision about Tuesday, January 27th will be made by 5:00 PM Monday';
+        message = 'Decision about Monday, February 2nd, 2026 will be made by 5:00 PM Sunday';
         confidence = 0.92;
       }
-      // If Tuesday is mentioned but no specific status
-      else if (lowerData.includes('tuesday, january 27') || lowerData.includes('tuesday')) {
+      // If Monday is mentioned but no specific status
+      else if (lowerData.includes('monday, february 2') || lowerData.includes('monday')) {
         status = 'School Status Update';
-        message = 'Update available for Tuesday, January 27th - monitoring weather conditions';
+        message = 'Update available for Monday, February 2nd, 2026 - monitoring weather conditions';
         confidence = 0.88;
       }
     }
     
     // Try to extract a more specific status if possible
     if (hasSchoolKeyword) {
-      // Look for patterns like "School will be" or "School is" specifically about Tuesday
-      const tuesdaySchoolMatch = data.match(/tuesday[^:]*:.*?school\s+(will\s+be|is)\s+([^.]+)/i);
-      if (tuesdaySchoolMatch) {
-        const extractedStatus = tuesdaySchoolMatch[2].trim();
-        if (extractedStatus.length > 0 && extractedStatus.length < 100) {
-          message = `Tuesday, January 27th: ${extractedStatus}`;
-          confidence = 0.94;
-        }
+      // Look for patterns like "School will be" or "School is" specifically about Monday
+      const mondaySchoolMatch = data.match(/monday[^:]*:.*?school\s+(will\s+be|is)\s+([^.]+)/i);
+      if (mondaySchoolMatch) {
+        const extractedStatus = mondaySchoolMatch[2].trim();
+        status = 'School Status Update';
+        message = `Monday, February 2nd, 2026: ${extractedStatus}`;
+        confidence = 0.94;
       }
     }
     
@@ -149,7 +148,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching school status:', error);
     
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch school status';
     const processingTime = Date.now() - startTime;
     
     return NextResponse.json(

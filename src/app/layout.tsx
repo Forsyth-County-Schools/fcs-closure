@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   title: "FCS School Status Checker",
   description: "Real-time school status monitoring for Forsyth County Schools - Monday, February 2nd",
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/logo.webp',
+    shortcut: '/logo.webp',
+    apple: '/logo.webp',
   },
   viewport: {
     width: 'device-width',
