@@ -315,37 +315,37 @@ export default function MobilePage() {
       
       <div className="relative z-10">
         {/* Responsive Header */}
-        <header className={`text-center ${isMobile ? 'py-4' : 'py-6'} ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
+        <header className={`text-center ${isMobile ? 'py-2' : 'py-4'} ${isMobile ? 'px-3 py-2' : 'px-4 py-3'}`}>
           {/* Logo */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2">
             <img 
               src="/logo.webp" 
               alt="Forsyth County Schools Logo" 
-              className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'}`}
+              className={`${isMobile ? 'w-10 h-10' : 'w-14 h-14'}`}
             />
           </div>
           
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Smartphone className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-cyan-400`} />
+          <div className="flex items-center justify-center gap-1 mb-2">
+            <Smartphone className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-cyan-400`} />
             <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-cyan-400 font-medium`}>
               {isMobile ? 'Mobile' : isTablet ? 'Tablet' : 'Desktop'} View
             </span>
           </div>
           
-          <h1 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-black mb-2 tracking-tight`}>
+          <h1 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-black mb-1 tracking-tight`}>
             <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
               FORSYTH
             </span>
           </h1>
-          <h2 className={`${isMobile ? 'text-base' : 'text-xl'} font-black mb-4 tracking-tight text-cyan-400`}>
+          <h2 className={`${isMobile ? 'text-sm' : 'text-lg'} font-black mb-2 tracking-tight text-cyan-400`}>
             COUNTY SCHOOLS
           </h2>
           
-          <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mb-3 uppercase tracking-wider`}>
+          <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mb-2 uppercase tracking-wider`}>
             Real-time Status
           </div>
           
-          <div className={`flex items-center justify-center ${isMobile ? 'gap-2' : 'gap-4'} text-cyan-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className={`flex items-center justify-center ${isMobile ? 'gap-1' : 'gap-2'} text-cyan-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
             <Clock className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
             <span>{currentDate}</span>
             <MapPin className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
@@ -354,35 +354,35 @@ export default function MobilePage() {
         </header>
 
         {/* Main Content */}
-        <main className={isMobile ? "px-4 py-3 pb-6" : "px-6 py-4 pb-6"}>
-          <div className="grid grid-cols-1 gap-4">
+        <main className={isMobile ? "px-3 py-2 pb-4" : "px-4 py-3 pb-4"}>
+          <div className="grid grid-cols-1 gap-3">
             {/* Status Card */}
             <div className="h-full">
               <div className="relative group h-full">
                 {/* Glowing border effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-cyan-500/20 to-blue-500/20 rounded-2xl blur-lg group-hover:from-green-500/30 group-hover:via-cyan-500/30 group-hover:to-blue-500/30 transition-all duration-500" />
                 
-                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-4' : 'p-6'} shadow-2xl h-full`}>
+                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-3' : 'p-4'} shadow-2xl h-full`}>
                 {/* Inner glow */}
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-cyan-500/5 rounded-2xl" />
                 
                 <div className="relative h-full flex flex-col justify-between">
                   {/* Glowing checkmark */}
-                  <div className="flex items-center justify-center mb-4">
+                  <div className="flex items-center justify-center mb-3">
                     <div className="relative">
                       <div className="absolute inset-0 bg-green-500/30 rounded-full blur-xl animate-pulse" />
-                      <CheckCircle className={`relative ${isMobile ? 'w-12 h-12' : 'w-16 h-16'} text-green-400 drop-shadow-[0_0_30px_rgba(52,211,153,0.8)]`} />
+                      <CheckCircle className={`relative ${isMobile ? 'w-8 h-8' : 'w-12 h-12'} text-green-400 drop-shadow-[0_0_30px_rgba(52,211,153,0.8)]`} />
                     </div>
                   </div>
                   
                   {/* Bold status text */}
-                  <h2 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-black mb-3 tracking-tight text-center`}>
+                  <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-black mb-2 tracking-tight text-center`}>
                     <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                       SCHOOL IS ON SCHEDULE
                     </span>
                   </h2>
                   
-                  <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-300 mb-4 font-light text-center`}>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300 mb-3 font-light text-center`}>
                     {schoolStatus?.message || 'All operations proceeding normally'}
                   </p>
                   
@@ -405,30 +405,30 @@ export default function MobilePage() {
                 {/* Glowing border */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-2xl blur-lg group-hover:from-cyan-500/30 group-hover:via-blue-500/30 group-hover:to-purple-500/30 transition-all duration-500" />
                 
-                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-4' : 'p-6'} shadow-2xl h-full`}>
+                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-3' : 'p-4'} shadow-2xl h-full`}>
                 {/* Inner glow */}
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5 rounded-2xl" />
                 
                 <div className="relative h-full flex flex-col">
-                  <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold mb-4 text-white flex items-center ${isMobile ? 'gap-2' : 'gap-4'} tracking-wide`}>
-                    <WeatherIcon className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]`} />
+                  <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold mb-3 text-white flex items-center ${isMobile ? 'gap-2' : 'gap-3'} tracking-wide`}>
+                    <WeatherIcon className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]`} />
                     Weather
                   </h3>
                   
                   {weatherData ? (
-                    <div className={`${isMobile ? 'gap-3' : 'gap-6'} flex-1 flex flex-col justify-between`}>
+                    <div className={`${isMobile ? 'gap-3' : 'gap-6'} flex-1 flex flex-col`}>
                       {/* Weather icon and temperature */}
                       <div className="text-center">
                         <div className="relative inline-block mb-2">
                           <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl" />
-                          <WeatherIcon className={`relative ${isMobile ? 'w-8 h-8' : 'w-12 h-12'} text-cyan-400`} />
+                          <WeatherIcon className={`relative ${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-cyan-400`} />
                         </div>
-                        <p className={`${isMobile ? 'text-xl' : 'text-3xl'} font-black mb-1 tracking-tight`}>
+                        <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-black mb-1 tracking-tight`}>
                           <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                             {weatherData.temp_f}°F
                           </span>
                         </p>
-                        <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-300 font-light mb-1`}>
+                        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300 font-light mb-1`}>
                           Feels like {weatherData.feelslike_f}°F
                         </p>
                         <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-300 font-light`}>
@@ -437,12 +437,13 @@ export default function MobilePage() {
                       </div>
                       
                       {/* Enhanced weather details grid */}
-                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/10">
+                      <div className="flex-1 overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                         <div className="flex items-center gap-2">
                           <Wind className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-cyan-400`} />
                           <div>
                             <p className="text-xs text-gray-400 uppercase">Wind</p>
-                            <p className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-white`}>{weatherData.wind_mph} mph {weatherData.wind_dir}</p>
+                            <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-white`}>{weatherData.wind_mph} mph {weatherData.wind_dir}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -522,6 +523,7 @@ export default function MobilePage() {
                           </div>
                         )}
                       </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-6 flex-1 flex items-center justify-center">
@@ -539,16 +541,16 @@ export default function MobilePage() {
                 {/* Glowing border */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-lg group-hover:from-blue-500/30 group-hover:via-purple-500/30 group-hover:to-pink-500/30 transition-all duration-500" />
                 
-                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-4' : 'p-6'} shadow-2xl h-full`}>
+                <div className={`relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl ${isMobile ? 'p-3' : 'p-4'} shadow-2xl h-full`}>
                   {/* Inner glow */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 rounded-2xl" />
                   
                   <div className="relative h-full flex flex-col">
-                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold mb-4 text-white flex items-center ${isMobile ? 'gap-2' : 'gap-4'} tracking-wide`}>
+                    <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold mb-3 text-white flex items-center ${isMobile ? 'gap-2' : 'gap-3'} tracking-wide`}>
                       <div className="relative">
                         <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl" />
-                        <div className={`relative ${isMobile ? 'w-4 h-4' : 'w-5 h-5'} bg-blue-600 rounded-full flex items-center justify-center`}>
-                          <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-white`}>f</span>
+                        <div className={`relative ${isMobile ? 'w-3 h-3' : 'w-4 h-4'} bg-blue-600 rounded-full flex items-center justify-center`}>
+                          <span className={`${isMobile ? 'text-xs' : 'text-xs'} font-bold text-white`}>f</span>
                         </div>
                       </div>
                       Facebook Updates
@@ -573,7 +575,7 @@ export default function MobilePage() {
                             )}
                             
                             {/* Post message */}
-                            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-200 mb-3 line-clamp-3`}>
+                            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-200 mb-2 line-clamp-3`}>
                               {post.message}
                             </p>
                             
