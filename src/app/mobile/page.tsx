@@ -1,4 +1,4 @@
-import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin, Smartphone, Bell, BellOff } from 'lucide-react';
+import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin, Smartphone, Bell, BellOff, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 // Weather data interface
@@ -56,6 +56,7 @@ export default function MobilePage() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [countdown, setCountdown] = useState(30);
   const [smsEnabled, setSmsEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
   const [lastKnownStatus, setLastKnownStatus] = useState<string>('');
 
   const currentDate = formatDate();
@@ -75,10 +76,35 @@ export default function MobilePage() {
       });
       
       if (response.ok) {
-        console.log('SMS alert sent successfully');
+        console.log('✅ SMS alert sent successfully via Twilio');
+      } else {
+        console.log('❌ SMS alert failed');
       }
     } catch (error) {
       console.error('Error sending SMS alert:', error);
+    }
+  };
+
+  // Send email notification for status changes
+  const sendEmailAlert = async (message: string) => {
+    if (!emailEnabled) return;
+    
+    try {
+      const response = await fetch('/api/email-alert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message, weatherData }),
+      });
+      
+      if (response.ok) {
+        console.log('✅ Email alert sent successfully via SendGrid');
+      } else {
+        console.log('❌ Email alert failed');
+      }
+    } catch (error) {
+      console.error('Error sending email alert:', error);
     }
   };
 
@@ -100,10 +126,12 @@ export default function MobilePage() {
         const schoolJson = await schoolResponse.json();
         setSchoolStatus(schoolJson);
         
-        // Check for status changes and send SMS if needed
+        // Check for status changes and send alerts if needed
         const currentStatus = schoolJson.message || '';
         if (currentStatus !== lastKnownStatus && currentStatus !== 'No changes detected for Monday, February 2nd') {
+          // Send both SMS and email alerts
           sendSMSAlert(currentStatus);
+          sendEmailAlert(currentStatus);
           setLastKnownStatus(currentStatus);
         }
       }
@@ -325,6 +353,22 @@ export default function MobilePage() {
                 >
                   {smsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
                   {smsEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+              
+              {/* Email Toggle */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-300">Email Alerts</span>
+                <button
+                  onClick={() => setEmailEnabled(!emailEnabled)}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                    emailEnabled 
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                  }`}
+                >
+                  <Mail className="w-3 h-3" />
+                  {emailEnabled ? 'ON' : 'OFF'}
                 </button>
               </div>
             </div>

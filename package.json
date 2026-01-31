@@ -9,12 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "@vonage/server-sdk": "^3.26.0",
     "framer-motion": "^12.29.2",
     "lucide-react": "^0.563.0",
     "next": "16.1.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "twilio": "^5.12.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
