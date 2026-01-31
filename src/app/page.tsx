@@ -71,7 +71,11 @@ async function fetchWeatherData(): Promise<WeatherData | null> {
 // Fetch school status
 async function fetchSchoolStatus(): Promise<SchoolStatus | null> {
   try {
-    const response = await fetch('/api/school-status');
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://your-domain.com' 
+      : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/school-status`);
     
     if (!response.ok) {
       throw new Error('School status API request failed');
@@ -79,7 +83,7 @@ async function fetchSchoolStatus(): Promise<SchoolStatus | null> {
     
     return await response.json();
   } catch (error) {
-    console.error('Error fetching school status:', error);
+    // Silently handle school status errors to prevent page crashes
     return null;
   }
 }
