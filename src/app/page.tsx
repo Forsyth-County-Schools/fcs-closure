@@ -30,24 +30,44 @@ async function fetchWeatherData(): Promise<WeatherData | null> {
     const baseUrl = getBaseUrl();
     
     const weatherUrl = baseUrl ? `${baseUrl}/api/weather` : '/api/weather';
+    console.log('🌤️ Page: Fetching weather from', weatherUrl);
     const response = await fetch(weatherUrl, {
       next: { revalidate: 600 } // Cache for 10 minutes
     });
     
+    console.log('📡 Page: Weather response status', response.status);
+    
     if (!response.ok) {
-      throw new Error('Weather API request failed');
+      const errorText = await response.text();
+      console.error('❌ Page: Weather API request failed', {
+        status: response.status,
+        statusText: response.statusText,
+        bodyPreview: errorText.slice(0, 300),
+      });
+      throw new Error(`Weather API request failed (${response.status}): ${errorText.slice(0, 100)}`);
     }
     
     const contentType = response.headers.get('content-type') || '';
+    console.log('📄 Page: Response content-type', contentType);
     if (!contentType.includes('application/json')) {
       const bodyPreview = (await response.text()).slice(0, 200);
+      console.error('❌ Page: Weather API returned non-JSON response', {
+        status: response.status,
+        contentType,
+        bodyPreview,
+      });
       throw new Error(`Weather API returned non-JSON response (${response.status}): ${bodyPreview}`);
     }
 
     const data = await response.json();
+    console.log('✅ Page: Weather data received', {
+      location: data.location?.name,
+      temp_f: data.current?.temp_f,
+      condition: data.current?.condition?.text,
+    });
     return data.current || null;
   } catch (error) {
-    console.error('Error fetching weather data:', error);
+    console.error('💥 Page: Error fetching weather data', error);
     return null;
   }
 }
