@@ -1,4 +1,4 @@
-import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Activity, Clock, MapPin } from 'lucide-react';
+import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin } from 'lucide-react';
 import RefreshButton from '@/components/refresh-button';
 
 // Weather data interface
@@ -63,7 +63,7 @@ async function fetchWeatherData(): Promise<WeatherData | null> {
     const data = await response.json();
     return data.current_condition?.[0] || null;
   } catch (error) {
-    console.error('Error fetching weather:', error);
+    // Silently handle weather errors to prevent page crashes
     return null;
   }
 }
@@ -139,30 +139,6 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Activity className="w-6 h-6 text-cyan-400" />
-                    <span className="text-gray-400 text-sm">Uptime</span>
-                  </div>
-                  <p className="text-2xl font-bold text-white">99.9%</p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Clock className="w-6 h-6 text-cyan-400" />
-                    <span className="text-gray-400 text-sm">Response Time</span>
-                  </div>
-                  <p className="text-2xl font-bold text-white">145ms</p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Activity className="w-6 h-6 text-cyan-400" />
-                    <span className="text-gray-400 text-sm">Checks Today</span>
-                  </div>
-                  <p className="text-2xl font-bold text-white">1,247</p>
-                </div>
-              </div>
             </div>
 
             {/* Right Column - Weather */}
