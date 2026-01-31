@@ -1,4 +1,7 @@
+'use client';
+
 import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import RefreshButton from '@/components/refresh-button';
 import { formatDate } from '@/lib/date-utils';
 import { getWeatherIcon } from '@/lib/weather-utils';
@@ -18,28 +21,15 @@ interface SchoolStatus {
   message: string;
 }
 
-function getBaseUrl(): string {
-  if (process.env.BASE_URL) return process.env.BASE_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return process.env.NODE_ENV === 'production' ? 'https://fcs-closure.vercel.app' : 'http://localhost:3000';
-}
-
-// Fetch weather data
+// Fetch weather data from client side
 async function fetchWeatherData(): Promise<WeatherData | null> {
   try {
-    const baseUrl = getBaseUrl();
-    
-    const weatherUrl = baseUrl ? `${baseUrl}/api/weather` : '/api/weather';
-    console.log('🌤️ Page: Fetching weather from', weatherUrl);
-    const response = await fetch(weatherUrl, {
-      next: { revalidate: 600 } // Cache for 10 minutes
-    });
-    
-    console.log('📡 Page: Weather response status', response.status);
+    console.log('🌤️ Client: Fetching weather from public endpoint');
+    const response = await fetch('/api/weather');
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Page: Weather API request failed', {
+      console.error('❌ Client: Weather API request failed', {
         status: response.status,
         statusText: response.statusText,
         bodyPreview: errorText.slice(0, 300),
@@ -47,38 +37,23 @@ async function fetchWeatherData(): Promise<WeatherData | null> {
       throw new Error(`Weather API request failed (${response.status}): ${errorText.slice(0, 100)}`);
     }
     
-    const contentType = response.headers.get('content-type') || '';
-    console.log('📄 Page: Response content-type', contentType);
-    if (!contentType.includes('application/json')) {
-      const bodyPreview = (await response.text()).slice(0, 200);
-      console.error('❌ Page: Weather API returned non-JSON response', {
-        status: response.status,
-        contentType,
-        bodyPreview,
-      });
-      throw new Error(`Weather API returned non-JSON response (${response.status}): ${bodyPreview}`);
-    }
-
     const data = await response.json();
-    console.log('✅ Page: Weather data received', {
+    console.log('✅ Client: Weather data received', {
       location: data.location?.name,
       temp_f: data.current?.temp_f,
       condition: data.current?.condition?.text,
     });
     return data.current || null;
   } catch (error) {
-    console.error('💥 Page: Error fetching weather data', error);
+    console.error('💥 Client: Error fetching weather data', error);
     return null;
   }
 }
 
-// Fetch school status
+// Fetch school status from client side
 async function fetchSchoolStatus(): Promise<SchoolStatus | null> {
   try {
-    const baseUrl = getBaseUrl();
-    
-    const statusUrl = baseUrl ? `${baseUrl}/api/status` : '/api/status';
-    const response = await fetch(statusUrl);
+    const response = await fetch('/api/status');
     
     if (!response.ok) {
       throw new Error('School status API request failed');
@@ -91,14 +66,46 @@ async function fetchSchoolStatus(): Promise<SchoolStatus | null> {
   }
 }
 
-export default async function Home() {
-  // Fetch data server-side
-  const weatherData = await fetchWeatherData();
-  const schoolStatus = await fetchSchoolStatus();
+export default function Home() {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [schoolStatus, setSchoolStatus] = useState<SchoolStatus | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const currentDate = formatDate();
   const weatherIconName = weatherData ? weatherData.condition?.text || '' : '';
   const WeatherIcon = weatherIconName ? getWeatherIcon(weatherIconName) : Sun;
+  
+  // Fetch data on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const [weather, status] = await Promise.all([
+          fetchWeatherData(),
+          fetchSchoolStatus()
+        ]);
+        setWeatherData(weather);
+        setSchoolStatus(status);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, []);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-950 text-white overflow-hidden">
