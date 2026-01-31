@@ -3,9 +3,14 @@
 // Store the last known notification to avoid duplicates
 let lastKnownNotification: string | null = null;
 
-// Check if notifications are supported
+// Check if notifications are supported (server-side check)
 export function areNotificationsSupported(): boolean {
-  return 'Notification' in window && 'permission' in Notification;
+  return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+// Server-side check for notifications support
+export function isServerSide(): boolean {
+  return typeof window === 'undefined';
 }
 
 // Request notification permission

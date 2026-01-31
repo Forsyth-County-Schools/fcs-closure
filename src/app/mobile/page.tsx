@@ -6,7 +6,8 @@ import {
   requestNotificationPermission, 
   sendFCSNotification, 
   areNotificationsSupported,
-  getNotificationPermission 
+  getNotificationPermission,
+  isServerSide
 } from '@/lib/notification-service';
 
 // Weather data interface
@@ -119,7 +120,7 @@ export default function MobilePage() {
 
   // Send desktop notification for status changes
   const sendDesktopNotification = async (message: string) => {
-    if (!notificationEnabled || !areNotificationsSupported()) return;
+    if (!notificationEnabled || !areNotificationsSupported() || isServerSide()) return;
     
     try {
       const success = await sendFCSNotification(message, weatherData);
@@ -176,9 +177,9 @@ export default function MobilePage() {
     fetchData();
   }, []);
 
-  // Request notification permission on mount
+  // Request notification permission on mount (client-side only)
   useEffect(() => {
-    if (areNotificationsSupported()) {
+    if (!isServerSide() && areNotificationsSupported()) {
       requestNotificationPermission();
     }
   }, []);
@@ -359,6 +360,7 @@ export default function MobilePage() {
               </div>
             </div>
           </div>
+          </div>
 
           {/* Auto-refresh Status */}
           <div className="fixed bottom-4 left-4 right-4">
@@ -423,6 +425,7 @@ export default function MobilePage() {
               </div>
             </div>
           </div>
+        </div>
 
           {/* Last refresh info */}
           <div className="text-center mt-4">

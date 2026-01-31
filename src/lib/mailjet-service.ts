@@ -1,8 +1,17 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const mailjet = require('node-mailjet').connect(
-  process.env.MJ_APIKEY_PUBLIC!,
-  process.env.MJ_APIKEY_PRIVATE!
-);
+const mailjet = require('node-mailjet');
+
+let client: any = null;
+
+// Initialize client only when credentials are available
+function initializeMailjetClient() {
+  if (!client && process.env.MJ_APIKEY_PUBLIC && process.env.MJ_APIKEY_PRIVATE) {
+    client = mailjet.Client(
+      process.env.MJ_APIKEY_PUBLIC!,
+      process.env.MJ_APIKEY_PRIVATE!
+    );
+  }
+}
 
 // Mailjet configuration from environment variables
 const FROM_EMAIL = process.env.MAILJET_FROM_EMAIL || 'noreply@fcs-status.com';
@@ -13,6 +22,11 @@ let lastKnownEmailMessage: string | null = null;
 
 export async function sendMailjetEmail(message: string, weatherData?: any) {
   try {
+    // Initialize client if not already done
+    if (!client) {
+      initializeMailjetClient();
+    }
+
     // Only send if the message is different from the last one
     if (message === lastKnownEmailMessage) {
       console.log('Email message unchanged, skipping email');
@@ -25,8 +39,14 @@ export async function sendMailjetEmail(message: string, weatherData?: any) {
       return false;
     }
 
+    // Check if client is properly initialized
+    if (!client) {
+      console.log(' Mailjet client not initialized - missing credentials');
+      return false;
+    }
+
     // Prepare email data using correct Mailjet format
-    const request = mailjet.post('send').request({
+    const request = client.post('send').request({
       FromEmail: FROM_EMAIL,
       FromName: 'FCS Status Monitor',
       Subject: 'FCS Status Alert',
@@ -47,7 +67,7 @@ This is an automated alert from the FCS Status Monitoring System.
       'Html-part': `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
   <div style="background-color: #0f172a; color: white; padding: 20px; border-radius: 10px 10px 0 0;">
-    <h1 style="margin: 0; font-size: 24px; text-align: center;">🚨 FCS Status Alert</h1>
+    <h1 style="margin: 0; font-size: 24px; text-align: center;"> FCS Status Alert</h1>
   </div>
   
   <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -57,12 +77,12 @@ This is an automated alert from the FCS Status Monitoring System.
     </div>
     
     <div style="margin-bottom: 20px;">
-      <h3 style="margin: 0 0 10px 0; color: #374151;">📅 Timestamp</h3>
+      <h3 style="margin: 0 0 10px 0; color: #374151;"> Timestamp</h3>
       <p style="margin: 0; color: #6b7280;">${new Date().toLocaleString()}</p>
     </div>
     
     <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-      <h3 style="margin: 0 0 15px 0; color: #374151;">🌤️ Weather Conditions</h3>
+      <h3 style="margin: 0 0 15px 0; color: #374151;"> Weather Conditions</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div>
           <strong>Temperature:</strong> ${weatherData ? `${weatherData.temp_f}°F` : 'N/A'}
@@ -94,7 +114,7 @@ This is an automated alert from the FCS Status Monitoring System.
     
     lastKnownEmailMessage = message;
     
-    console.log('✅ Email sent successfully via Mailjet');
+    console.log(' Email sent successfully via Mailjet');
     console.log('Response:', response.body);
     console.log('To:', TO_EMAIL);
     
@@ -123,7 +143,17 @@ export function resetLastKnownEmailMessage() {
 // Test function to verify Mailjet setup
 export async function testMailjetEmail() {
   try {
-    const request = mailjet.post('send').request({
+    // Initialize client if not already done
+    if (!client) {
+      initializeMailjetClient();
+    }
+
+    if (!client) {
+      console.log('❌ Mailjet client not initialized - cannot test');
+      return false;
+    }
+
+    const request = client.post('send').request({
       FromEmail: FROM_EMAIL,
       FromName: 'FCS Status Monitor',
       Subject: 'FCS Status Test - Mailjet Integration',
