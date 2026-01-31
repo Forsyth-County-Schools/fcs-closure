@@ -46,7 +46,7 @@ export default function RootLayout({
       <head>
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src * 'unsafe-eval'; style-src 'self'; connect-src 'self' https://api.weatherapi.com https://www.weatherapi.com;"
+          content="default-src 'self'; script-src * 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.weatherapi.com https://www.weatherapi.com;"
         />
       </head>
       <body

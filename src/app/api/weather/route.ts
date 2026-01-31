@@ -6,7 +6,7 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Content-Security-Policy': "default-src 'self'; script-src * 'unsafe-eval'; style-src 'self'; connect-src 'self' https://api.weatherapi.com https://www.weatherapi.com;",
+  'Content-Security-Policy': "default-src 'self'; script-src * 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.weatherapi.com https://www.weatherapi.com;",
 };
 
 export async function GET(request: NextRequest) {
