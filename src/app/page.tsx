@@ -21,7 +21,7 @@ interface SchoolStatus {
 function getBaseUrl(): string {
   if (process.env.BASE_URL) return process.env.BASE_URL;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000';
+  return process.env.NODE_ENV === 'production' ? 'https://fcs-closure.vercel.app' : 'http://localhost:3000';
 }
 
 // Fetch weather data
