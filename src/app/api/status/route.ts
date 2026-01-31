@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logError, createErrorResponse, safeFetch } from '@/lib/error-handling';
 
 // Security headers
 const SECURITY_HEADERS = {
@@ -40,7 +41,7 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(FCS_URL, {
+    const response = await safeFetch(FCS_URL, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -146,19 +147,24 @@ export async function GET() {
     });
     
   } catch (error) {
-    console.error('Error fetching school status:', error);
+    logError('School Status API', error, { url: FCS_URL, processingTime: Date.now() - startTime });
     
     const processingTime = Date.now() - startTime;
+    const errorResponse = createErrorResponse(
+      'Service temporarily unavailable. Please try again later.',
+      503,
+      { processingTime: `${processingTime}ms` }
+    );
     
     return NextResponse.json(
       { 
-        error: 'Service temporarily unavailable. Please try again later.',
+        error: errorResponse.message,
         processingTime: `${processingTime}ms`,
-        timestamp: new Date().toISOString(),
+        timestamp: errorResponse.timestamp,
         verified: false
       },
       { 
-        status: 503,
+        status: errorResponse.status || 503,
         headers: SECURITY_HEADERS
       }
     );

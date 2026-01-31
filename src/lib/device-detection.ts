@@ -20,11 +20,13 @@ export function isMobileDevice(): boolean {
   const mobileKeywords = [
     'mobile', 'android', 'iphone', 'ipod', 'blackberry',
     'windows phone', 'opera mini', 'iemobile', 'kindle',
-    'webos', 'phone', 'tablet'
+    'webos', 'phone'
   ];
   
-  // Check user agent for mobile keywords
-  const hasMobileKeyword = mobileKeywords.some(keyword => userAgent.includes(keyword));
+  // Check user agent for mobile keywords (exclude tablet keywords)
+  const hasMobileKeyword = mobileKeywords.some(keyword => userAgent.includes(keyword)) && 
+                          !userAgent.includes('tablet') && 
+                          !userAgent.includes('ipad');
   
   // Check screen size (typical mobile devices are <= 768px width)
   const hasMobileScreenSize = screenWidth <= 768;
@@ -32,7 +34,7 @@ export function isMobileDevice(): boolean {
   // Check for touch capability (most mobile devices have touch)
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  return hasMobileKeyword || (hasMobileScreenSize && hasTouch);
+  return hasMobileKeyword || (hasMobileScreenSize && hasTouch && !isTabletDevice());
 }
 
 // Check if the device is tablet
@@ -65,10 +67,13 @@ export function getDeviceInfo(): DeviceInfo {
     };
   }
   
+  const isTablet = isTabletDevice();
+  const isMobile = isMobileDevice();
+  
   return {
-    isMobile: isMobileDevice(),
-    isTablet: isTabletDevice(),
-    isDesktop: !isMobileDevice() && !isTabletDevice(),
+    isMobile: isMobile && !isTablet,
+    isTablet,
+    isDesktop: !isMobile && !isTablet,
     userAgent: navigator.userAgent,
     screenWidth: window.screen.width,
     screenHeight: window.screen.height

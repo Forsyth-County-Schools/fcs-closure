@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin, Smartphone, Bell, BellOff, Mail, BellRing } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { 
   requestNotificationPermission, 
   sendFCSNotification, 
@@ -14,6 +14,18 @@ import {
   getDeviceStyles, 
   isMobileDevice 
 } from '@/lib/device-detection';
+import { 
+  isWeatherData, 
+  toWeatherDataRecord 
+} from '@/lib/type-guards';
+import { 
+  formatDate, 
+  formatTime 
+} from '@/lib/date-utils';
+import { 
+  getWeatherIcon,
+  type WeatherIconComponent 
+} from '@/lib/weather-utils';
 
 // Weather data interface
 interface WeatherData {
@@ -30,38 +42,6 @@ interface SchoolStatus {
   message: string;
 }
 
-// Helper function to get ordinal suffix
-function getOrdinalSuffix(day: number): string {
-  const j = day % 10;
-  const k = day % 100;
-  if (j === 1 && k !== 11) return 'st';
-  if (j === 2 && k !== 12) return 'nd';
-  if (j === 3 && k !== 13) return 'rd';
-  return 'th';
-}
-
-// Helper function to format date
-function formatDate(): string {
-  const now = new Date();
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  
-  const dayName = days[now.getDay()];
-  const monthName = months[now.getMonth()];
-  const day = now.getDate();
-  const suffix = getOrdinalSuffix(day);
-  
-  return `${dayName}, ${monthName} ${day}${suffix}`;
-}
-
-// Helper function to get weather icon
-function getWeatherIcon(condition: string) {
-  const lowerCondition = condition.toLowerCase();
-  if (lowerCondition.includes('clear') || lowerCondition.includes('sunny')) return Sun;
-  if (lowerCondition.includes('rain') || lowerCondition.includes('shower') || lowerCondition.includes('drizzle')) return CloudRain;
-  if (lowerCondition.includes('cloud') || lowerCondition.includes('overcast') || lowerCondition.includes('mist') || lowerCondition.includes('fog')) return Cloud;
-  return Sun; // default
-}
 
 export default function MobilePage() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -77,7 +57,7 @@ export default function MobilePage() {
   const [showAutoRefresh, setShowAutoRefresh] = useState(!isMobileDevice());
 
   const currentDate = formatDate();
-  const [WeatherIcon, setWeatherIcon] = useState(() => Sun);
+  const [WeatherIcon, setWeatherIcon] = useState<WeatherIconComponent>(() => Sun);
   
   // Update weather icon when weather data changes
   useEffect(() => {
@@ -89,7 +69,7 @@ export default function MobilePage() {
   }, [weatherData]);
 
   // Send SMS notification for status changes
-  const sendSMSAlert = async (message: string) => {
+  const sendSMSAlert = useCallback(async (message: string) => {
     if (!smsEnabled) return;
     
     try {
@@ -109,19 +89,20 @@ export default function MobilePage() {
     } catch (error) {
       console.error('Error sending SMS alert:', error);
     }
-  };
+  }, [smsEnabled]);
 
   // Send email notification for status changes
-  const sendEmailAlert = async (message: string) => {
+  const sendEmailAlert = useCallback(async (message: string) => {
     if (!emailEnabled) return;
     
     try {
+      const weatherDataRecord = toWeatherDataRecord(weatherData);
       const response = await fetch('/api/email-alert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message, weatherData }),
+        body: JSON.stringify({ message, weatherData: weatherDataRecord }),
       });
       
       if (response.ok) {
@@ -132,14 +113,15 @@ export default function MobilePage() {
     } catch (error) {
       console.error('Error sending email alert:', error);
     }
-  };
+  }, [emailEnabled, weatherData]);
 
   // Send desktop notification for status changes
-  const sendDesktopNotification = async (message: string) => {
+  const sendDesktopNotification = useCallback(async (message: string) => {
     if (!notificationEnabled || !areNotificationsSupported() || isServerSide()) return;
     
     try {
-      const success = await sendFCSNotification(message, weatherData as unknown as Record<string, unknown> || undefined);
+      const weatherDataRecord = toWeatherDataRecord(weatherData);
+      const success = await sendFCSNotification(message, weatherDataRecord);
       if (success) {
         console.log('✅ Desktop notification sent successfully');
       } else {
@@ -148,7 +130,7 @@ export default function MobilePage() {
     } catch (error) {
       console.error('Error sending desktop notification:', error);
     }
-  };
+  }, [notificationEnabled, weatherData]);
 
   // Fetch data function
   const fetchData = useCallback(async () => {
@@ -170,13 +152,16 @@ export default function MobilePage() {
         
         // Check for status changes and send alerts if needed
         const currentStatus = schoolJson.message || '';
-        if (currentStatus !== lastKnownStatus && currentStatus !== 'No changes detected for Monday, February 2nd') {
-          // Send SMS, email, and desktop alerts
-          sendSMSAlert(currentStatus);
-          sendEmailAlert(currentStatus);
-          sendDesktopNotification(currentStatus);
-          setLastKnownStatus(currentStatus);
-        }
+        setLastKnownStatus(prevStatus => {
+          // Only send alerts if status actually changed and it's not the default message
+          if (currentStatus !== prevStatus && currentStatus !== 'No changes detected for Monday, February 2nd') {
+            // Send SMS, email, and desktop alerts
+            sendSMSAlert(currentStatus);
+            sendEmailAlert(currentStatus);
+            sendDesktopNotification(currentStatus);
+          }
+          return currentStatus;
+        });
       }
       
       setLastRefresh(new Date());
@@ -186,7 +171,7 @@ export default function MobilePage() {
     } finally {
       setLoading(false);
     }
-  }, [lastKnownStatus, smsEnabled, emailEnabled, notificationEnabled]);
+  }, [sendSMSAlert, sendEmailAlert, sendDesktopNotification]);
 
   // Initial fetch
   useEffect(() => {
@@ -241,7 +226,7 @@ export default function MobilePage() {
     return () => clearInterval(timer);
   }, [fetchData]);
 
-  const deviceStyles = getDeviceStyles();
+  const deviceStyles = useMemo(() => getDeviceStyles(), [deviceInfo]);
   const isMobile = deviceInfo.isMobile;
   const isTablet = deviceInfo.isTablet;
   

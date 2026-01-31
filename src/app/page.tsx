@@ -1,5 +1,7 @@
 import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin } from 'lucide-react';
 import RefreshButton from '@/components/refresh-button';
+import { formatDate } from '@/lib/date-utils';
+import { getWeatherIcon } from '@/lib/weather-utils';
 
 // Weather data interface
 interface WeatherData {
@@ -14,30 +16,6 @@ interface SchoolStatus {
   status: string;
   lastUpdated: string;
   message: string;
-}
-
-// Helper function to get ordinal suffix
-function getOrdinalSuffix(day: number): string {
-  const j = day % 10;
-  const k = day % 100;
-  if (j === 1 && k !== 11) return 'st';
-  if (j === 2 && k !== 12) return 'nd';
-  if (j === 3 && k !== 13) return 'rd';
-  return 'th';
-}
-
-// Helper function to format date
-function formatDate(): string {
-  const now = new Date();
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  
-  const dayName = days[now.getDay()];
-  const monthName = months[now.getMonth()];
-  const day = now.getDate();
-  const suffix = getOrdinalSuffix(day);
-  
-  return `${dayName}, ${monthName} ${day}${suffix}`;
 }
 
 
@@ -88,6 +66,7 @@ export default async function Home() {
   
   const currentDate = formatDate();
   const weatherIconName = weatherData ? weatherData.condition?.text || '' : '';
+  const WeatherIcon = weatherIconName ? getWeatherIcon(weatherIconName) : Sun;
   
   return (
     <div className="min-h-screen bg-gray-950 text-white overflow-hidden">
@@ -188,15 +167,7 @@ export default async function Home() {
                   
                   <div className="relative h-full flex flex-col">
                     <h3 className="text-xl font-bold mb-8 text-white flex items-center gap-3 tracking-wide">
-                      {weatherIconName.toLowerCase().includes('clear') || weatherIconName.toLowerCase().includes('sunny') ? (
-                        <Sun className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
-                      ) : weatherIconName.toLowerCase().includes('rain') || weatherIconName.toLowerCase().includes('shower') || weatherIconName.toLowerCase().includes('drizzle') ? (
-                        <CloudRain className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
-                      ) : weatherIconName.toLowerCase().includes('cloud') || weatherIconName.toLowerCase().includes('overcast') || weatherIconName.toLowerCase().includes('mist') || weatherIconName.toLowerCase().includes('fog') ? (
-                        <Cloud className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
-                      ) : (
-                        <Sun className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
-                      )}
+                      <WeatherIcon className="w-7 h-7 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
                       Weather Conditions
                     </h3>
                     
@@ -206,15 +177,7 @@ export default async function Home() {
                         <div className="text-center">
                           <div className="relative inline-block mb-4">
                             <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-2xl" />
-                            {weatherIconName.toLowerCase().includes('clear') || weatherIconName.toLowerCase().includes('sunny') ? (
-                        <Sun className="relative w-20 h-20 md:w-24 md:h-24 text-cyan-400" />
-                      ) : weatherIconName.toLowerCase().includes('rain') || weatherIconName.toLowerCase().includes('shower') || weatherIconName.toLowerCase().includes('drizzle') ? (
-                        <CloudRain className="relative w-20 h-20 md:w-24 md:h-24 text-cyan-400" />
-                      ) : weatherIconName.toLowerCase().includes('cloud') || weatherIconName.toLowerCase().includes('overcast') || weatherIconName.toLowerCase().includes('mist') || weatherIconName.toLowerCase().includes('fog') ? (
-                        <Cloud className="relative w-20 h-20 md:w-24 md:h-24 text-cyan-400" />
-                      ) : (
-                        <Sun className="relative w-20 h-20 md:w-24 md:h-24 text-cyan-400" />
-                      )}
+                            <WeatherIcon className="relative w-20 h-20 md:w-24 md:h-24 text-cyan-400" />
                           </div>
                           <p className="text-4xl md:text-5xl font-black mb-2 tracking-tight">
                             <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
