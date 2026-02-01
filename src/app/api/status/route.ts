@@ -55,10 +55,10 @@ export async function GET() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // School is closed
+    // School is closed - Override
     const result = {
       status: 'School is Closed',
-      message: 'All schools are closed on Monday, February 2nd, 2026 due to winter weather',
+      message: 'All schools are CLOSED on Monday, February 2nd, 2026 due to winter weather',
       lastUpdated: new Date().toLocaleString(),
       confidence: 1.0,
       source: 'Forsyth County Schools API',
