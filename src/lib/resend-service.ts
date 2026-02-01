@@ -1,11 +1,7 @@
 import { Resend } from 'resend';
 
 const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  throw new Error('Missing required environment variable: RESEND_API_KEY');
-}
-
-const resend = new Resend(resendApiKey);
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Email configuration
 const FROM_EMAIL = 'forsyth@ahscampus.com';
@@ -15,6 +11,11 @@ const TO_EMAIL = process.env.NOTIFICATION_EMAIL || 'jgwatson29@gmail.com';
 let lastKnownEmailMessage: string | null = null;
 
 export async function sendResendEmail(message: string, weatherData?: Record<string, unknown>) {
+  if (!resend) {
+    console.warn('RESEND_API_KEY not configured; skipping email');
+    return false;
+  }
+
   try {
     // Only send if the message is different from the last one
     if (message === lastKnownEmailMessage) {
@@ -155,6 +156,11 @@ export function resetLastKnownEmailMessage() {
 
 // Test function to verify ReSend setup
 export async function testResendEmail() {
+  if (!resend) {
+    console.warn('RESEND_API_KEY not configured; cannot test email');
+    return false;
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
