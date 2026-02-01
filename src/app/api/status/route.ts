@@ -17,6 +17,56 @@ let cachedResponse: Record<string, unknown> | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 0;
 
+const MIN_ALERT_TEXT_LENGTH = 100;
+
+const MONTHS: Record<string, number> = {
+  january: 0,
+  february: 1,
+  march: 2,
+  april: 3,
+  may: 4,
+  june: 5,
+  july: 6,
+  august: 7,
+  september: 8,
+  october: 9,
+  november: 10,
+  december: 11,
+};
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function isWeekday(date: Date): boolean {
+  const day = date.getDay();
+  return day >= 1 && day <= 5;
+}
+
+function getRelevantSchoolDay(now: Date): Date {
+  const day = now.getDay();
+  if (day === 6) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 2);
+    return startOfDay(d);
+  }
+  if (day === 0) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 1);
+    return startOfDay(d);
+  }
+  return startOfDay(now);
+}
+
+function formatLongDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+}
+
 function stripHtmlToText(html: string): string {
   const withoutScripts = html
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -51,7 +101,7 @@ function stripHtmlToText(html: string): string {
   return lines.join('\n');
 }
 
-function detectAlert(text: string): { isAlert: boolean; status: string; confidence: number } {
+function classifyAnnouncement(text: string): { status: string; confidence: number } {
   const lower = text.toLowerCase();
   const keywords: Array<{ re: RegExp; status: string; confidence: number }> = [
     { re: /online\s+learning\s+day/i, status: 'Online Learning Day', confidence: 0.99 },
@@ -67,15 +117,58 @@ function detectAlert(text: string): { isAlert: boolean; status: string; confiden
 
   for (const k of keywords) {
     if (k.re.test(lower)) {
-      return { isAlert: true, status: k.status, confidence: k.confidence };
+      return { status: k.status, confidence: k.confidence };
     }
   }
 
-  if (text.length >= 200) {
-    return { isAlert: true, status: 'Alert', confidence: 0.75 };
+  return { status: 'Alert', confidence: 0.7 };
+}
+
+function parseDateFromAnnouncement(text: string, reference: Date): Date | null {
+  const ref = startOfDay(reference);
+
+  const monthPattern = new RegExp(
+    String.raw`\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)?\s*,?\s*(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?\b`,
+    'gi'
+  );
+
+  const numericPattern = /(\b\d{1,2})\/(\d{1,2})\/(\d{4})\b/g;
+
+  const candidates: Date[] = [];
+
+  for (const match of text.matchAll(monthPattern)) {
+    const monthName = String(match[1] || '').toLowerCase();
+    const monthIndex = MONTHS[monthName];
+    const day = Number(match[2]);
+    const yearRaw = match[3];
+    const year = yearRaw ? Number(yearRaw) : ref.getFullYear();
+
+    if (!Number.isFinite(monthIndex) || !Number.isFinite(day) || !Number.isFinite(year)) continue;
+    const d = new Date(year, monthIndex, day);
+    if (d.getMonth() !== monthIndex || d.getDate() !== day) continue;
+
+    if (!yearRaw && d.getTime() < ref.getTime()) {
+      d.setFullYear(d.getFullYear() + 1);
+    }
+
+    candidates.push(startOfDay(d));
   }
 
-  return { isAlert: false, status: 'Open', confidence: 0.9 };
+  for (const match of text.matchAll(numericPattern)) {
+    const month = Number(match[1]);
+    const day = Number(match[2]);
+    const year = Number(match[3]);
+    if (!Number.isFinite(month) || !Number.isFinite(day) || !Number.isFinite(year)) continue;
+    const d = new Date(year, month - 1, day);
+    if (d.getMonth() !== month - 1 || d.getDate() !== day) continue;
+    candidates.push(startOfDay(d));
+  }
+
+  const futureOrToday = candidates
+    .filter((d) => d.getTime() >= ref.getTime())
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  return futureOrToday[0] || null;
 }
 
 function shortenAnnouncement(text: string, maxLen: number = 240): string {
@@ -108,6 +201,9 @@ export async function GET() {
   }
 
   try {
+    const nowLocal = new Date();
+    const relevantSchoolDay = getRelevantSchoolDay(nowLocal);
+
     const cacheBustedUrl = `${FCS_URL}${FCS_URL.includes('?') ? '&' : '?'}t=${Date.now()}`;
     const response = await safeFetch(cacheBustedUrl, {
       headers: {
@@ -131,17 +227,27 @@ export async function GET() {
       throw new Error('Response too large');
     }
 
-    const announcementText = stripHtmlToText(rawHtml);
-    const { isAlert, status, confidence } = detectAlert(announcementText);
-    const shortAnnouncement = isAlert ? shortenAnnouncement(announcementText) : '';
+    const announcementText = stripHtmlToText(rawHtml).trim();
+    const hasAlert = announcementText.length >= MIN_ALERT_TEXT_LENGTH;
+    const classification = hasAlert ? classifyAnnouncement(announcementText) : { status: 'Open', confidence: 0.9 };
+    const targetDate = (hasAlert ? parseDateFromAnnouncement(announcementText, nowLocal) : null) || relevantSchoolDay;
+    const targetIsToday = isWeekday(nowLocal) && startOfDay(nowLocal).getTime() === startOfDay(targetDate).getTime();
+    const targetIsRelevantSchoolDay = startOfDay(relevantSchoolDay).getTime() === startOfDay(targetDate).getTime();
+    const prefix = targetIsToday ? 'Today' : (nowLocal.getDay() === 0 || nowLocal.getDay() === 6) && targetIsRelevantSchoolDay ? 'Next school day' : 'Upcoming';
+    const summary = hasAlert ? classification.status : 'Open / Normal schedule';
+    const shortAnnouncement = hasAlert ? shortenAnnouncement(announcementText) : '';
+    const message = hasAlert
+      ? `${prefix} (${formatLongDate(targetDate)}): ${summary}\n${shortAnnouncement}`
+      : `${prefix} (${formatLongDate(targetDate)}): ${summary}`;
 
     const result = {
-      isOpen: !isAlert,
-      status: isAlert ? status : 'Open',
-      message: isAlert ? shortAnnouncement : 'No changes detected for Monday, February 2nd',
-      announcement: isAlert ? announcementText : '',
+      isOpen: !hasAlert,
+      status: hasAlert ? classification.status : 'Open',
+      message,
+      announcement: hasAlert ? announcementText : '',
+      targetDate: targetDate.toISOString().slice(0, 10),
       lastUpdated: new Date().toLocaleString(),
-      confidence,
+      confidence: classification.confidence,
       source: 'Forsyth County Schools',
       processingTime: `${Date.now() - startTime}ms`,
       verified: true,

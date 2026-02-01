@@ -118,10 +118,10 @@ export default function Home() {
         setSchoolStatus(status);
         
         // Check for status changes and send Discord alert
-        if (status && status.message) {
+        if (status && status.message && status.isOpen === false) {
           const currentStatus = status.message;
           setLastKnownStatus(prevStatus => {
-            if (currentStatus !== prevStatus && currentStatus !== 'No changes detected for Monday, February 2nd') {
+            if (currentStatus !== prevStatus) {
               sendDiscordAlert(currentStatus, "School Status Change");
             }
             return currentStatus;

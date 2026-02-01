@@ -13,6 +13,7 @@ export interface SchoolStatus {
   lastUpdated: string;
   message: string;
   announcement?: string;
+  targetDate?: string;
 }
 
 // Type guard for WeatherData
@@ -41,7 +42,8 @@ export function isSchoolStatus(obj: unknown): obj is SchoolStatus {
     typeof data.status === 'string' &&
     typeof data.lastUpdated === 'string' &&
     typeof data.message === 'string' &&
-    (data.announcement === undefined || typeof data.announcement === 'string')
+    (data.announcement === undefined || typeof data.announcement === 'string') &&
+    (data.targetDate === undefined || typeof data.targetDate === 'string')
   );
 }
 

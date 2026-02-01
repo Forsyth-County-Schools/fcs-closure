@@ -203,8 +203,8 @@ export default function MobilePage() {
         // Check for status changes and send alerts if needed
         const currentStatus = schoolJson.message || '';
         setLastKnownStatus(prevStatus => {
-          // Only send alerts if status actually changed and it's not the default message
-          if (currentStatus !== prevStatus && currentStatus !== 'No changes detected for Monday, February 2nd') {
+          // Only send alerts if status actually changed and it's an active alert
+          if (schoolJson.isOpen === false && currentStatus !== prevStatus) {
             // Send Discord, email, and desktop alerts
             sendDiscordAlert(currentStatus, "School Status Change");
             sendEmailAlert(currentStatus);

@@ -13,15 +13,22 @@ export function getOrdinalSuffix(day: number): string {
 // Helper function to format date
 export function formatDate(): string {
   const now = new Date();
+  const relevant = new Date(now);
+  const day = now.getDay();
+  if (day === 6) {
+    relevant.setDate(relevant.getDate() + 2);
+  } else if (day === 0) {
+    relevant.setDate(relevant.getDate() + 1);
+  }
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   
-  const dayName = days[now.getDay()];
-  const monthName = months[now.getMonth()];
-  const day = now.getDate();
-  const suffix = getOrdinalSuffix(day);
+  const dayName = days[relevant.getDay()];
+  const monthName = months[relevant.getMonth()];
+  const dateNum = relevant.getDate();
+  const suffix = getOrdinalSuffix(dateNum);
   
-  return `${dayName}, ${monthName} ${day}${suffix}`;
+  return `${dayName}, ${monthName} ${dateNum}${suffix}`;
 }
 
 // Helper function to format time
