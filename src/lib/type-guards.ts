@@ -8,9 +8,11 @@ export interface WeatherData {
 }
 
 export interface SchoolStatus {
+  isOpen?: boolean;
   status: string;
   lastUpdated: string;
   message: string;
+  announcement?: string;
 }
 
 // Type guard for WeatherData
@@ -35,9 +37,11 @@ export function isSchoolStatus(obj: unknown): obj is SchoolStatus {
   
   const data = obj as Record<string, unknown>;
   return (
+    (data.isOpen === undefined || typeof data.isOpen === 'boolean') &&
     typeof data.status === 'string' &&
     typeof data.lastUpdated === 'string' &&
-    typeof data.message === 'string'
+    typeof data.message === 'string' &&
+    (data.announcement === undefined || typeof data.announcement === 'string')
   );
 }
 

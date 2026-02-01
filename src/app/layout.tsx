@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FCS School Status Checker",
   description: "Real-time school status monitoring for Forsyth County Schools - Monday, February 2nd",
+  metadataBase: new URL('https://schoolcancelled.today'),
+  openGraph: {
+    url: 'https://schoolcancelled.today',
+  },
   icons: {
     icon: '/logo.webp',
     shortcut: '/logo.webp',

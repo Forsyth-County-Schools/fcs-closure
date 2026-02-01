@@ -30,7 +30,7 @@ const REQUIRED_VARS: (keyof EnvConfig)[] = [
 const OPTIONAL_VARS: Partial<EnvConfig> = {
   maxResponseSize: '1000000',
   baseUrl: process.env.NODE_ENV === 'production'
-    ? 'https://fcs-closure.vercel.app'
+    ? 'https://schoolcancelled.today'
     : 'http://localhost:3000',
   fromEmail: 'noreply@fcs-status.com'
 };
