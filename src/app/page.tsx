@@ -4,7 +4,6 @@ import { CheckCircle, XCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, Map
 import { useEffect, useState } from 'react';
 import RefreshButton from '@/components/refresh-button';
 import WeatherMonitorBox from '@/components/WeatherMonitorBox';
-import NotificationSignup from '@/components/NotificationSignup';
 import { formatDate } from '@/lib/date-utils';
 import { getWeatherIcon } from '@/lib/weather-utils';
 
@@ -288,11 +287,6 @@ export default function Home() {
           {/* FCS Weather Monitor Box */}
           <div className="mt-6">
             <WeatherMonitorBox compact />
-          </div>
-          
-          {/* Notification Signup */}
-          <div className="mt-6">
-            <NotificationSignup />
           </div>
         </main>
       </div>

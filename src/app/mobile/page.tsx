@@ -76,7 +76,6 @@ export default function MobilePage() {
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [countdown, setCountdown] = useState(30);
-  const [emailEnabled, setEmailEnabled] = useState(true);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [lastKnownStatus, setLastKnownStatus] = useState<string>('');
   const [deviceInfo, setDeviceInfo] = useState(getDeviceInfo());
@@ -94,30 +93,6 @@ export default function MobilePage() {
     }
   }, [weatherData]);
 
-
-  // Send email notification for status changes
-  const sendEmailAlert = useCallback(async (message: string) => {
-    if (!emailEnabled) return;
-    
-    try {
-      const weatherDataRecord = toWeatherDataRecord(weatherData);
-      const response = await fetch('/api/email-alert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message, weatherData: weatherDataRecord }),
-      });
-      
-      if (response.ok) {
-        console.log('✅ Email alert sent successfully via Mailjet');
-      } else {
-        console.log('❌ Email alert failed');
-      }
-    } catch (error) {
-      console.error('Error sending email alert:', error);
-    }
-  }, [emailEnabled, weatherData]);
 
   // Send desktop notification for status changes
   const sendDesktopNotification = useCallback(async (message: string) => {
@@ -165,8 +140,7 @@ export default function MobilePage() {
         setLastKnownStatus(prevStatus => {
           // Only send alerts if status actually changed and it's an active alert
           if (schoolJson.isOpen === false && currentStatus !== prevStatus) {
-            // Send email and desktop alerts
-            sendEmailAlert(currentStatus);
+            // Send desktop notification
             sendDesktopNotification(currentStatus);
           }
           return currentStatus;
@@ -181,7 +155,7 @@ export default function MobilePage() {
     } finally {
       setLoading(false);
     }
-  }, [sendEmailAlert, sendDesktopNotification]);
+  }, [sendDesktopNotification]);
 
   // Initial fetch
   useEffect(() => {
@@ -509,22 +483,6 @@ export default function MobilePage() {
                   <div className="text-xs text-cyan-400 font-mono">
                     {countdown}s
                   </div>
-                </div>
-                
-                {/* Email Toggle */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-300">Email Alerts</span>
-                  <button
-                    onClick={() => setEmailEnabled(!emailEnabled)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
-                      emailEnabled 
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                        : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                    }`}
-                  >
-                    <Mail className="w-2 h-2" />
-                    {emailEnabled ? 'ON' : 'OFF'}
-                  </button>
                 </div>
                 
                 {/* Desktop Notification Toggle */}

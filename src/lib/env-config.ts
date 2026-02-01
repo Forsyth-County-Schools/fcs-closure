@@ -3,8 +3,6 @@
 export interface EnvConfig {
   // API Keys
   weatherApiKey: string;
-  onesignalApiKey: string;
-  onesignalAppId: string;
   
   // Notification settings
   notificationEmail?: string;
@@ -23,8 +21,6 @@ export interface EnvConfig {
 // Required environment variables
 const REQUIRED_VARS: (keyof EnvConfig)[] = [
   'weatherApiKey',
-  'onesignalApiKey',
-  'onesignalAppId',
   'nodeEnv'
 ];
 
@@ -45,8 +41,6 @@ export function validateEnv(): EnvConfig {
   for (const varName of REQUIRED_VARS) {
     const envKey =
       varName === 'weatherApiKey' ? 'WEATHER_KEY' :
-      varName === 'onesignalApiKey' ? 'ONESIGNAL_API_KEY' :
-      varName === 'onesignalAppId' ? 'ONESIGNAL_APP_ID' :
       varName === 'nodeEnv' ? 'NODE_ENV' :
       varName.toUpperCase();
     const value = process.env[envKey];
@@ -101,7 +95,7 @@ export function isFeatureEnabled(feature: 'email' | 'notifications'): boolean {
   
   switch (feature) {
     case 'email':
-      return !!(config.onesignalApiKey && config.onesignalAppId && config.notificationEmail);
+      return !!(config.notificationEmail);
     case 'notifications':
       return typeof window !== 'undefined' && 'Notification' in window;
     default:
