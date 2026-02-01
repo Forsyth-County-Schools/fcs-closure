@@ -52,11 +52,12 @@ export default function WeatherMonitor() {
       const data = await response.json();
       
       if (data.success) {
+        const now = new Date();
         setWeatherStatus(prev => ({
           status: data.status,
-          lastUpdated: data.lastUpdated,
+          lastUpdated: now.toISOString(),
           isMonitoring: true,
-          lastCheck: new Date().toLocaleString(),
+          lastCheck: now.toLocaleString(),
           updateCount: prev.updateCount + (prev.status !== data.status ? 1 : 0)
         }));
       } else {

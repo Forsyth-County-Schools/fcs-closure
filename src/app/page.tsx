@@ -3,6 +3,7 @@
 import { CheckCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import RefreshButton from '@/components/refresh-button';
+import WeatherMonitorBox from '@/components/WeatherMonitorBox';
 import { formatDate } from '@/lib/date-utils';
 import { getWeatherIcon } from '@/lib/weather-utils';
 
@@ -94,6 +95,10 @@ export default function Home() {
     }
     
     loadData();
+    
+    // Auto-refresh entire page every 10 seconds
+    const interval = setInterval(loadData, 10 * 1000);
+    return () => clearInterval(interval);
   }, []);
   
   if (loading) {
@@ -256,6 +261,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* FCS Weather Monitor Box */}
+          <div className="mt-6">
+            <WeatherMonitorBox compact />
           </div>
         </main>
       </div>

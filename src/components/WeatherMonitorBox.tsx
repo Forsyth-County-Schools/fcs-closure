@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cloud, AlertTriangle, CheckCircle, Clock, RefreshCw, Bell, ExternalLink } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface WeatherStatus {
   status: string;
@@ -24,6 +24,19 @@ export default function WeatherMonitorBox({ compact = false, className = "" }: W
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const extractTimestamp = (status: string): string => {
+    // Extract "As of [date] at [time]" and the first few words of the status
+    const timestampMatch = status.match(/As of[^,]*,/);
+    const statusStart = status.match(/Due to[^.]*/);
+    
+    if (timestampMatch && statusStart) {
+      return `${timestampMatch[0]} ${statusStart[0]}`;
+    } else if (timestampMatch) {
+      return timestampMatch[0];
+    }
+    return 'Status not available';
+  };
+
   const fetchWeatherStatus = async () => {
     setIsRefreshing(true);
     try {
@@ -31,11 +44,12 @@ export default function WeatherMonitorBox({ compact = false, className = "" }: W
       const data = await response.json();
       
       if (data.success) {
+        const now = new Date();
         setWeatherStatus({
           status: data.status,
-          lastUpdated: data.lastUpdated,
+          lastUpdated: now.toISOString(),
           isMonitoring: true,
-          lastCheck: new Date().toLocaleString()
+          lastCheck: now.toLocaleString()
         });
       } else {
         throw new Error(data.message || 'Failed to fetch status');
@@ -54,105 +68,44 @@ export default function WeatherMonitorBox({ compact = false, className = "" }: W
   useEffect(() => {
     fetchWeatherStatus();
     
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchWeatherStatus, 5 * 60 * 1000);
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchWeatherStatus, 10 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusIcon = () => {
-    if (weatherStatus.status.toLowerCase().includes('canceled') || 
-        weatherStatus.status.toLowerCase().includes('closed')) {
-      return <AlertTriangle className="w-5 h-5 text-red-500" />;
-    } else if (weatherStatus.status.toLowerCase().includes('delayed')) {
-      return <Clock className="w-5 h-5 text-yellow-500" />;
-    } else {
-      return <CheckCircle className="w-5 h-5 text-green-500" />;
-    }
-  };
+  const timestamp = extractTimestamp(weatherStatus.status);
 
-  const getStatusColor = () => {
-    if (weatherStatus.status.toLowerCase().includes('canceled') || 
-        weatherStatus.status.toLowerCase().includes('closed')) {
-      return 'border-red-200 bg-red-50';
-    } else if (weatherStatus.status.toLowerCase().includes('delayed')) {
-      return 'border-yellow-200 bg-yellow-50';
-    } else {
-      return 'border-green-200 bg-green-50';
-    }
-  };
-
-  if (compact) {
-    return (
-      <div className={`p-4 border-2 rounded-lg ${getStatusColor()} ${className}`}>
-        <div className="flex items-center justify-between">
+  return (
+    <div className={`relative group ${className}`}>
+      {/* Glowing border effect */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 via-pink-500/20 to-orange-500/20 rounded-3xl blur-xl group-hover:from-red-500/30 group-hover:via-pink-500/30 group-hover:to-orange-500/30 transition-all duration-500" />
+      
+      <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-2xl hover:bg-black/50 transition-all duration-500">
+        {/* Inner glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5 rounded-3xl" />
+        
+        <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {getStatusIcon()}
+            <div className="relative">
+              <div className="absolute inset-0 bg-red-500/30 rounded-full blur-2xl animate-pulse" />
+              <AlertTriangle className="relative w-5 h-5 text-red-400 drop-shadow-[0_0_20px_rgba(248,113,113,0.6)]" />
+            </div>
             <div>
-              <h3 className="font-semibold text-sm">FCS Weather Status</h3>
-              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                {weatherStatus.status.slice(0, 100)}...
+              <h3 className="font-semibold text-sm text-white flex items-center gap-2 tracking-wide">
+                FCS Weather Status
+              </h3>
+              <p className="text-xs text-gray-300 mt-1 font-light tracking-wide">
+                {timestamp}
               </p>
             </div>
           </div>
           <button
             onClick={fetchWeatherStatus}
             disabled={isRefreshing}
-            className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-50"
+            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg disabled:opacity-50 transition-all duration-300"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`p-6 border-2 rounded-lg ${getStatusColor()} ${className}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Cloud className="w-6 h-6 text-blue-600" />
-          <h2 className="text-xl font-bold">Forsyth County Schools Weather Status</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {weatherStatus.isMonitoring && (
-            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              <Bell className="w-3 h-3" />
-              Monitoring
-            </span>
-          )}
-          <button
-            onClick={fetchWeatherStatus}
-            disabled={isRefreshing}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-4">
-        {getStatusIcon()}
-        <div className="flex-1">
-          <div className="mb-3">
-            <h3 className="font-semibold mb-2">Current Status</h3>
-            <p className="text-gray-700 leading-relaxed">{weatherStatus.status}</p>
-          </div>
-          
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              Last Updated: {new Date(weatherStatus.lastUpdated).toLocaleString()}
-            </span>
-            <a 
-              href="https://www.forsyth.k12.ga.us/district-services/communications/inclement-weather-closure"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Official Source
-            </a>
-          </div>
         </div>
       </div>
     </div>
