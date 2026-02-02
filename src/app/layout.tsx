@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { generateStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -93,7 +94,30 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta httpEquiv="Content-Security-Policy" content="default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today; img-src 'self' https://schoolcancelled.today data:; font-src 'self' https://schoolcancelled.today;" />
+        <meta httpEquiv="Content-Security-Policy" content="default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today https://www.googletagmanager.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today https://www.google-analytics.com; img-src 'self' https://schoolcancelled.today data: https://www.google-analytics.com; font-src 'self' https://schoolcancelled.today;" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-NMD57F7NKF"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-NMD57F7NKF');
+            `,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateStructuredData()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateBreadcrumbStructuredData()),
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
