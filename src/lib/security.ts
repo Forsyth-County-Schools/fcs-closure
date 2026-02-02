@@ -6,7 +6,7 @@ export const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Content-Security-Policy': "default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today https://www.googletagmanager.com 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today https://www.google-analytics.com; img-src 'self' https://schoolcancelled.today data: https://www.google-analytics.com; font-src 'self' https://schoolcancelled.today;",
+  'Content-Security-Policy': "default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today https://www.googletagmanager.com 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today https://www.google-analytics.com https://analytics.google.com; img-src 'self' https://schoolcancelled.today data: https://www.google-analytics.com; font-src 'self' https://schoolcancelled.today;",
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
 };

@@ -3,6 +3,7 @@
 import { CheckCircle, XCircle, Sun, Cloud, CloudRain, Wind, Droplets, Clock, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import RefreshButton from '@/components/refresh-button';
+import RedirectButton from '@/components/redirect-button';
 import WeatherMonitorBox from '@/components/WeatherMonitorBox';
 import { formatDate } from '@/lib/date-utils';
 import { getWeatherIcon } from '@/lib/weather-utils';
@@ -212,8 +213,14 @@ export default function Home() {
                       {schoolStatus?.message || 'All operations proceeding normally'}
                     </p>
                     
-                    {/* Enhanced refresh button */}
-                    <RefreshButton />
+                    {/* Action buttons */}
+                    <div className="flex gap-3">
+                      <RefreshButton />
+                      <RedirectButton 
+                        url="https://www.forsyth.k12.ga.us/district-services/communications/inclement-weather-closure"
+                        message="Redirecting you to the district's official weather closure page where you can find detailed information about school closures and delays."
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

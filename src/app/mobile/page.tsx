@@ -26,6 +26,7 @@ import {
   getWeatherIcon,
   type WeatherIconComponent 
 } from '@/lib/weather-utils';
+import RedirectButton from '@/components/redirect-button';
 
 // Weather data interface
 interface WeatherData {
@@ -319,15 +320,24 @@ export default function MobilePage() {
                     {schoolStatus?.message || 'All operations proceeding normally'}
                   </p>
                   
-                  {/* Refresh button */}
-                  <button 
-                    onClick={fetchData}
-                    disabled={loading}
-                    className={`w-full ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} bg-gradient-to-r from-green-500 via-cyan-500 to-blue-500 hover:from-green-400 hover:via-cyan-400 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-700 text-white font-black ${isMobile ? 'text-xs' : 'text-xs'} rounded-lg shadow-lg hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-500 flex items-center justify-center gap-1 tracking-wide uppercase`}
-                  >
-                    <Clock className={isMobile ? 'w-2 h-2' : 'w-3 h-3'} />
-                    {loading ? 'Refreshing...' : 'Refresh Now'}
-                  </button>
+                  {/* Action buttons */}
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={fetchData}
+                      disabled={loading}
+                      className={`flex-1 ${isMobile ? 'px-2 py-1' : 'px-3 py-2'} bg-gradient-to-r from-green-500 via-cyan-500 to-blue-500 hover:from-green-400 hover:via-cyan-400 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-700 text-white font-black ${isMobile ? 'text-xs' : 'text-xs'} rounded-lg shadow-lg hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-500 flex items-center justify-center gap-1 tracking-wide uppercase`}
+                    >
+                      <Clock className={isMobile ? 'w-2 h-2' : 'w-3 h-3'} />
+                      {loading ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                    
+                    <div className="flex-1">
+                      <RedirectButton 
+                        url="https://www.forsyth.k12.ga.us/district-services/communications/inclement-weather-closure"
+                        message="Redirecting you to the district's official weather closure page."
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

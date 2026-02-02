@@ -94,7 +94,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta httpEquiv="Content-Security-Policy" content="default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today https://www.googletagmanager.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today https://www.google-analytics.com; img-src 'self' https://schoolcancelled.today data: https://www.google-analytics.com; font-src 'self' https://schoolcancelled.today;" />
+        <meta httpEquiv="Content-Security-Policy" content="default-src 'self' https://schoolcancelled.today; script-src 'self' https://schoolcancelled.today https://www.googletagmanager.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://schoolcancelled.today 'unsafe-inline'; connect-src 'self' https://schoolcancelled.today https://www.google-analytics.com https://analytics.google.com; img-src 'self' https://schoolcancelled.today data: https://www.google-analytics.com; font-src 'self' https://schoolcancelled.today;" />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-NMD57F7NKF"></script>
         <script
           dangerouslySetInnerHTML={{
