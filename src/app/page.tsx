@@ -288,6 +288,45 @@ export default function Home() {
           <div className="mt-6">
             <WeatherMonitorBox compact />
           </div>
+
+          {/* Backlinks Section */}
+          <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded p-2">
+            <div className="flex gap-1 overflow-x-auto">
+              <a
+                href="https://www.forsyth.k12.ga.us"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-600 rounded hover:shadow-sm transition-shadow flex-shrink-0"
+              >
+                <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-blue-300 font-bold text-xs">F</span>
+                </div>
+                <p className="text-xs text-gray-900 dark:text-white">FCS</p>
+              </a>
+              
+              <a
+                href="https://www.weather.gov/ffc/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-600 rounded hover:shadow-sm transition-shadow flex-shrink-0"
+              >
+                <div className="w-4 h-4 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 dark:text-green-300 text-xs">⛅</span>
+                </div>
+                <p className="text-xs text-gray-900 dark:text-white">Weather</p>
+              </a>
+              
+              <a
+                href="/backlinks"
+                className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-600 rounded hover:shadow-sm transition-shadow flex-shrink-0"
+              >
+                <div className="w-4 h-4 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 dark:text-purple-300 text-xs">🔗</span>
+                </div>
+                <p className="text-xs text-gray-900 dark:text-white">More</p>
+              </a>
+            </div>
+          </div>
         </main>
       </div>
     </div>
