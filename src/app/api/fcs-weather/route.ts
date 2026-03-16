@@ -60,29 +60,32 @@ export async function GET(request: NextRequest) {
 }
 
 function extractCurrentStatus(html: string): string {
-  // Try multiple patterns to find the current status
-  const patterns = [
-    /## Current Status[\s\S]*?(?=##|$)/,
-    /As of.*?2026[\s\S]*?(?=##|$)/,
-    /Due to anticipated inclement weather[\s\S]*?(?=##|$)/,
-    /All school activities[\s\S]*?(?=##|$)/
-  ];
+  // Strip scripts, styles, and all HTML tags to get plain text
+  const text = html
+    .replace(/<script[\s\S]*?<\/script[^>]*>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style[^>]*>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match) {
-      let status = match[0]
-        .replace(/## Current Status/, '')
-        .replace(/<[^>]*>/g, '')
-        .replace(/\n+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (status.length > 20) {
-        return status;
-      }
-    }
-  }
-  
-  return 'Status section not found - page structure may have changed';
+  // Dynamically search for sentences containing delay or closure keywords
+  const sentences = text.match(/[^.!?]+[.!?]?/g) || [text];
+
+  const delayKeywords = /\b(delay|delayed|2-hour delay|two-hour delay|late start)\b/i;
+  const closureKeywords = /\b(closed|closure|cancelled|cancellation|cancel)\b/i;
+
+  const delayMatch = sentences.find((s) => delayKeywords.test(s));
+  if (delayMatch) return delayMatch.trim();
+
+  const closureMatch = sentences.find((s) => closureKeywords.test(s));
+  if (closureMatch) return closureMatch.trim();
+
+  return 'No schedule changes detected';
 }
