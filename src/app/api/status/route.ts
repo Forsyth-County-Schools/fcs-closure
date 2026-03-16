@@ -245,9 +245,13 @@ export async function GET(request: NextRequest) {
       ? `${prefix} (${formatLongDate(targetDate)}): ${summary}\n${shortAnnouncement}`
       : `${prefix} (${formatLongDate(targetDate)}): ${summary}`;
 
+    const resolvedStatus = hasAlert ? classification.status : 'Open';
+    const isDelayed = resolvedStatus === 'Delayed';
+
     const result = {
       isOpen: !hasAlert,
-      status: hasAlert ? classification.status : 'Open',
+      isDelayed,
+      status: resolvedStatus,
       message,
       announcement: hasAlert ? announcementText : '',
       targetDate: targetDate.toISOString().slice(0, 10),
