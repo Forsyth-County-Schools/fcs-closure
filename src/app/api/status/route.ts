@@ -3,6 +3,7 @@ import { logError, safeFetch } from '@/lib/error-handling';
 import { SECURITY_HEADERS, getClientIdentifier, checkRateLimit, validateRequest, createSecureResponse, createErrorResponse as createSecureErrorResponse } from '@/lib/security';
 
 const FCS_URL = 'https://www.forsyth.k12.ga.us/fs/pages/0/page-pops';
+const FCS_WEATHER_URL = 'https://www.forsyth.k12.ga.us/district-services/communications/inclement-weather-closure';
 
 // Cache the response for 5 minutes
 let cachedResponse: Record<string, unknown> | null = null;
@@ -10,6 +11,11 @@ let lastFetchTime = 0;
 const CACHE_DURATION = 0;
 
 const MIN_ALERT_TEXT_LENGTH = 100;
+
+// Minimum character length for a sentence to qualify as a meaningful
+// school status announcement (filters out navigation items, headings,
+// and other short UI text that may contain keyword fragments).
+const MIN_WEATHER_SENTENCE_LENGTH = 50;
 
 const MONTHS: Record<string, number> = {
   january: 0,
@@ -232,7 +238,58 @@ export async function GET(request: NextRequest) {
       throw new Error('Response too large');
     }
 
-    const announcementText = stripHtmlToText(rawHtml).trim();
+    let announcementText = stripHtmlToText(rawHtml).trim();
+
+    // If the page-pops source has insufficient content or does not indicate a
+    // delay/closure, also check the official inclement weather closure page.
+    // FCS may post delay/closure announcements there instead of (or in addition
+    // to) a page pop.  We use sentence-level matching on that page to avoid
+    // false positives from navigation text or historical announcements.
+    const primaryClassification = announcementText.length >= MIN_ALERT_TEXT_LENGTH
+      ? classifyAnnouncement(announcementText)
+      : { status: 'Open', confidence: 0.9 };
+
+    const primaryIsActionable = primaryClassification.status !== 'Open' && primaryClassification.status !== 'Alert';
+
+    if (!primaryIsActionable) {
+      try {
+        const cacheBustedWeatherUrl = `${FCS_WEATHER_URL}?t=${Date.now()}`;
+        const weatherResponse = await safeFetch(cacheBustedWeatherUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Cache-Control': 'no-cache, no-store, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+          cache: 'no-store',
+        });
+        if (weatherResponse.ok) {
+          const weatherHtml = await weatherResponse.text();
+          if (weatherHtml.length <= 1000000) {
+            const weatherText = stripHtmlToText(weatherHtml).trim();
+            // Use paragraph-level splitting (newlines introduced by stripHtmlToText
+            // for block HTML elements) to find the first meaningful segment that
+            // classifies as an actionable status.  This avoids false positives from
+            // historical content and short navigation/heading items.
+            const schoolContextPattern = /\b(school|forsyth|student|district|operate|staff|class)\b/i;
+            const segments = weatherText.split('\n').filter(Boolean);
+            const matchingSentence = segments.find((s) => {
+              if (s.trim().length < MIN_WEATHER_SENTENCE_LENGTH || !schoolContextPattern.test(s)) return false;
+              const cls = classifyAnnouncement(s);
+              return cls.status !== 'Open' && cls.status !== 'Alert';
+            });
+            if (matchingSentence) {
+              announcementText = matchingSentence.trim();
+            }
+          }
+        }
+      } catch {
+        // Secondary fetch failure is non-fatal; proceed with primary result
+      }
+    }
+
     const hasAlert = announcementText.length >= MIN_ALERT_TEXT_LENGTH;
     const classification = hasAlert ? classifyAnnouncement(announcementText) : { status: 'Open', confidence: 0.9 };
     const targetDate = (hasAlert ? parseDateFromAnnouncement(announcementText, nowLocal) : null) || relevantSchoolDay;
